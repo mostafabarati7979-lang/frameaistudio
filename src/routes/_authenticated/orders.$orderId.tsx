@@ -13,6 +13,7 @@ import {
   CONTACT_METHODS,
 } from "@/lib/orders-schema";
 import { OrderFileUploader } from "@/components/orders/OrderFileUploader";
+import { QuotesPanel } from "@/components/orders/QuotesPanel";
 
 export const Route = createFileRoute("/_authenticated/orders/$orderId")({
   head: () => ({
