@@ -3,6 +3,7 @@ import { createServerFn } from "@tanstack/react-start";
 import { getRequestHeader } from "@tanstack/react-start/server";
 import { z } from "zod";
 import { normalizeIranianMobile, mobileToInternalEmail } from "./mobile";
+import { requireSupabaseAuth } from "@/integrations/supabase/auth-middleware";
 
 const OTP_TTL_SECONDS = 300; // 5 minutes
 const MAX_OTP_ATTEMPTS = 5;
