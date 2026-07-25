@@ -1,0 +1,55 @@
+import { createFileRoute, Link, notFound } from "@tanstack/react-router";
+import { posts } from "../lib/site-data";
+
+export const Route = createFileRoute("/blog/$slug")({
+  loader: ({ params }) => {
+    const post = posts.find((p) => p.slug === params.slug);
+    if (!post) throw notFound();
+    return { post };
+  },
+  head: ({ loaderData }) => {
+    if (!loaderData) {
+      return { meta: [{ title: "مقاله پیدا نشد" }, { name: "robots", content: "noindex" }] };
+    }
+    const { post } = loaderData;
+    return {
+      meta: [
+        { title: `${post.title} | وبلاگ فریم‌ای‌آی` },
+        { name: "description", content: post.excerpt },
+        { property: "og:title", content: post.title },
+        { property: "og:description", content: post.excerpt },
+        { property: "og:image", content: post.cover },
+        { name: "twitter:image", content: post.cover },
+      ],
+    };
+  },
+  component: BlogPost,
+});
+
+function BlogPost() {
+  const { post } = Route.useLoaderData();
+  return (
+    <article className="pb-16">
+      <div className="relative aspect-[21/9] w-full overflow-hidden">
+        <img src={post.cover} alt={post.title} className="w-full h-full object-cover" />
+        <div className="absolute inset-0 bg-gradient-to-t from-background via-background/40 to-transparent" />
+      </div>
+      <div className="container-page -mt-24 relative max-w-3xl">
+        <p className="text-xs text-[color:var(--gold)]">{post.date} • {post.readTime}</p>
+        <h1 className="mt-3 text-4xl md:text-5xl font-bold leading-tight">{post.title}</h1>
+        <p className="mt-6 text-lg text-foreground/90 leading-9">{post.excerpt}</p>
+        <div className="gold-divider my-8 max-w-[120px]" />
+        <div className="prose-invert leading-9 text-foreground/85 whitespace-pre-line">{post.body}</div>
+
+        <div className="mt-12 flex flex-wrap gap-3">
+          <Link to="/blog" className="rounded-md border border-border px-5 py-2.5 text-sm hover:bg-secondary transition">
+            بازگشت به وبلاگ
+          </Link>
+          <Link to="/contact" className="rounded-md bg-primary px-5 py-2.5 text-sm font-semibold text-primary-foreground">
+            ثبت درخواست پروژه
+          </Link>
+        </div>
+      </div>
+    </article>
+  );
+}
