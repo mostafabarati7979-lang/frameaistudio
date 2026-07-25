@@ -111,8 +111,8 @@
   color: var(--foreground);
   font-size: 0.875rem;
   transition: border-color 0.15s;
-}
-@utility input:focus {
-  outline: none;
-  border-color: var(--gold);
+  &:focus {
+    outline: none;
+    border-color: var(--gold);
+  }
 }
