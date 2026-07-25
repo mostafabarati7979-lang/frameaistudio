@@ -41,6 +41,182 @@ export type Database = {
         }
         Relationships: []
       }
+      order_files: {
+        Row: {
+          content_type: string
+          created_at: string
+          file_name: string
+          id: string
+          kind: string
+          order_id: string
+          owner_id: string
+          size_bytes: number
+          storage_path: string
+          uploaded_by_role: Database["public"]["Enums"]["app_role"]
+        }
+        Insert: {
+          content_type: string
+          created_at?: string
+          file_name: string
+          id?: string
+          kind: string
+          order_id: string
+          owner_id: string
+          size_bytes: number
+          storage_path: string
+          uploaded_by_role?: Database["public"]["Enums"]["app_role"]
+        }
+        Update: {
+          content_type?: string
+          created_at?: string
+          file_name?: string
+          id?: string
+          kind?: string
+          order_id?: string
+          owner_id?: string
+          size_bytes?: number
+          storage_path?: string
+          uploaded_by_role?: Database["public"]["Enums"]["app_role"]
+        }
+        Relationships: [
+          {
+            foreignKeyName: "order_files_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      orders: {
+        Row: {
+          address: string | null
+          aerial: boolean
+          best_call_time: string | null
+          budget_note: string | null
+          cameras_count: number | null
+          city: string | null
+          clips_count: number | null
+          consent_ai_use: boolean
+          consent_face_voice_simulation: boolean
+          consent_file_ownership: boolean
+          consent_publish_portfolio: boolean
+          consent_terms: boolean
+          created_at: string
+          customer_id: string
+          customer_notes: string | null
+          description: string | null
+          duration_min: number | null
+          event_date: string | null
+          expectations: string | null
+          id: string
+          needs_audio: boolean
+          needs_lighting: boolean
+          order_code: string
+          orientation: string | null
+          package_key: string | null
+          preferred_contact: string | null
+          project_title: string
+          quality: string | null
+          reels_count: number | null
+          rush: boolean
+          scriptwriting: boolean
+          service_type: string
+          shooting_days: number | null
+          status: Database["public"]["Enums"]["order_status"]
+          style: string | null
+          submitted_at: string | null
+          subtitles: boolean
+          team_hours: number | null
+          updated_at: string
+          voiceover: boolean
+        }
+        Insert: {
+          address?: string | null
+          aerial?: boolean
+          best_call_time?: string | null
+          budget_note?: string | null
+          cameras_count?: number | null
+          city?: string | null
+          clips_count?: number | null
+          consent_ai_use?: boolean
+          consent_face_voice_simulation?: boolean
+          consent_file_ownership?: boolean
+          consent_publish_portfolio?: boolean
+          consent_terms?: boolean
+          created_at?: string
+          customer_id: string
+          customer_notes?: string | null
+          description?: string | null
+          duration_min?: number | null
+          event_date?: string | null
+          expectations?: string | null
+          id?: string
+          needs_audio?: boolean
+          needs_lighting?: boolean
+          order_code: string
+          orientation?: string | null
+          package_key?: string | null
+          preferred_contact?: string | null
+          project_title: string
+          quality?: string | null
+          reels_count?: number | null
+          rush?: boolean
+          scriptwriting?: boolean
+          service_type: string
+          shooting_days?: number | null
+          status?: Database["public"]["Enums"]["order_status"]
+          style?: string | null
+          submitted_at?: string | null
+          subtitles?: boolean
+          team_hours?: number | null
+          updated_at?: string
+          voiceover?: boolean
+        }
+        Update: {
+          address?: string | null
+          aerial?: boolean
+          best_call_time?: string | null
+          budget_note?: string | null
+          cameras_count?: number | null
+          city?: string | null
+          clips_count?: number | null
+          consent_ai_use?: boolean
+          consent_face_voice_simulation?: boolean
+          consent_file_ownership?: boolean
+          consent_publish_portfolio?: boolean
+          consent_terms?: boolean
+          created_at?: string
+          customer_id?: string
+          customer_notes?: string | null
+          description?: string | null
+          duration_min?: number | null
+          event_date?: string | null
+          expectations?: string | null
+          id?: string
+          needs_audio?: boolean
+          needs_lighting?: boolean
+          order_code?: string
+          orientation?: string | null
+          package_key?: string | null
+          preferred_contact?: string | null
+          project_title?: string
+          quality?: string | null
+          reels_count?: number | null
+          rush?: boolean
+          scriptwriting?: boolean
+          service_type?: string
+          shooting_days?: number | null
+          status?: Database["public"]["Enums"]["order_status"]
+          style?: string | null
+          submitted_at?: string | null
+          subtitles?: boolean
+          team_hours?: number | null
+          updated_at?: string
+          voiceover?: boolean
+        }
+        Relationships: []
+      }
       otp_codes: {
         Row: {
           attempts: number
@@ -145,6 +321,7 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      generate_order_code: { Args: never; Returns: string }
       has_role: {
         Args: {
           _role: Database["public"]["Enums"]["app_role"]
@@ -155,6 +332,19 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "customer"
+      order_status:
+        | "draft"
+        | "submitted"
+        | "quoted"
+        | "contract_pending"
+        | "contract_approved"
+        | "payment_pending"
+        | "in_production"
+        | "initial_delivered"
+        | "revisions"
+        | "final_delivered"
+        | "completed"
+        | "cancelled"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -283,6 +473,20 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "customer"],
+      order_status: [
+        "draft",
+        "submitted",
+        "quoted",
+        "contract_pending",
+        "contract_approved",
+        "payment_pending",
+        "in_production",
+        "initial_delivered",
+        "revisions",
+        "final_delivered",
+        "completed",
+        "cancelled",
+      ],
     },
   },
 } as const

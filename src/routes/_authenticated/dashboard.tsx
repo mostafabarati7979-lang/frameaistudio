@@ -52,12 +52,18 @@ function Dashboard() {
           <p className="text-sm text-muted-foreground leading-7">
             حساب شما فعال است. به‌زودی می‌توانید سفارش جدید ثبت کنید، پیش‌فاکتور دریافت کنید و پروژه‌های خود را در همین پنل پیگیری نمایید.
           </p>
-          <div className="mt-6 flex gap-2">
+          <div className="mt-6 flex flex-wrap gap-2">
             <Link
-              to="/contact"
+              to="/orders/new"
               className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 transition"
             >
-              ثبت درخواست جدید
+              ثبت سفارش جدید
+            </Link>
+            <Link
+              to="/orders"
+              className="rounded-md border border-border px-4 py-2 text-sm hover:bg-secondary transition"
+            >
+              سفارش‌های من
             </Link>
             <Link to="/services" className="rounded-md border border-border px-4 py-2 text-sm hover:bg-secondary transition">
               مشاهده خدمات
