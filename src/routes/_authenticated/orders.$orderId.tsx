@@ -202,6 +202,8 @@ function OrderDetailPage() {
           </div>
         )}
 
+        <QuotesPanel orderId={order.id} />
+
         {/* Files */}
         <div className="mt-8">
           <h2 className="text-lg font-semibold mb-3">فایل‌های مرجع</h2>
