@@ -316,7 +316,7 @@ export const resetPasswordWithOtp = createServerFn({ method: "POST" })
 
 // ---------- Get session role (customer/admin) for the signed-in user ----------
 export const getMyRole = createServerFn({ method: "GET" })
-  .middleware([(await import("@/integrations/supabase/auth-middleware")).requireSupabaseAuth])
+  .middleware([requireSupabaseAuth])
   .handler(async ({ context }) => {
     const { data } = await context.supabase
       .from("user_roles")
