@@ -12,8 +12,6 @@ export type Service = {
   cover: string;
 };
 
-const stock = (id: number, w = 1200, h = 800) =>
-  `https://images.unsplash.com/photo-${id}?auto=format&fit=crop&w=${w}&h=${h}&q=80`;
 
 export const services: Service[] = [
   {
