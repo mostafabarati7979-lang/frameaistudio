@@ -13,6 +13,7 @@ import {
   CONTACT_METHODS,
 } from "@/lib/orders-schema";
 import { OrderFileUploader } from "@/components/orders/OrderFileUploader";
+import { QuotesPanel } from "@/components/orders/QuotesPanel";
 
 export const Route = createFileRoute("/_authenticated/orders/$orderId")({
   head: () => ({
@@ -200,6 +201,8 @@ function OrderDetailPage() {
             <p className="text-sm leading-7 whitespace-pre-wrap">{order.expectations}</p>
           </div>
         )}
+
+        <QuotesPanel orderId={order.id} />
 
         {/* Files */}
         <div className="mt-8">

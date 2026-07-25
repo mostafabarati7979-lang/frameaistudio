@@ -274,6 +274,118 @@ export type Database = {
         }
         Relationships: []
       }
+      quote_items: {
+        Row: {
+          amount_toman: number
+          created_at: string
+          description: string | null
+          id: string
+          quantity: number
+          quote_id: string
+          sort_order: number
+          title: string
+          unit_price_toman: number
+        }
+        Insert: {
+          amount_toman: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          quantity?: number
+          quote_id: string
+          sort_order?: number
+          title: string
+          unit_price_toman: number
+        }
+        Update: {
+          amount_toman?: number
+          created_at?: string
+          description?: string | null
+          id?: string
+          quantity?: number
+          quote_id?: string
+          sort_order?: number
+          title?: string
+          unit_price_toman?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quote_items_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      quotes: {
+        Row: {
+          admin_notes: string | null
+          created_at: string
+          created_by: string
+          customer_response_note: string | null
+          decided_at: string | null
+          deposit_toman: number
+          discount_toman: number
+          expires_at: string | null
+          id: string
+          order_id: string
+          sent_at: string | null
+          status: Database["public"]["Enums"]["quote_status"]
+          subtotal_toman: number
+          tax_toman: number
+          total_toman: number
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          admin_notes?: string | null
+          created_at?: string
+          created_by: string
+          customer_response_note?: string | null
+          decided_at?: string | null
+          deposit_toman?: number
+          discount_toman?: number
+          expires_at?: string | null
+          id?: string
+          order_id: string
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["quote_status"]
+          subtotal_toman?: number
+          tax_toman?: number
+          total_toman?: number
+          updated_at?: string
+          version: number
+        }
+        Update: {
+          admin_notes?: string | null
+          created_at?: string
+          created_by?: string
+          customer_response_note?: string | null
+          decided_at?: string | null
+          deposit_toman?: number
+          discount_toman?: number
+          expires_at?: string | null
+          id?: string
+          order_id?: string
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["quote_status"]
+          subtotal_toman?: number
+          tax_toman?: number
+          total_toman?: number
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "quotes_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       rate_limits: {
         Row: {
           bucket: string
@@ -329,6 +441,7 @@ export type Database = {
         }
         Returns: boolean
       }
+      next_quote_version: { Args: { _order_id: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "customer"
@@ -345,6 +458,14 @@ export type Database = {
         | "final_delivered"
         | "completed"
         | "cancelled"
+      quote_status:
+        | "draft"
+        | "sent"
+        | "approved"
+        | "rejected"
+        | "revision_requested"
+        | "superseded"
+        | "expired"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -486,6 +607,15 @@ export const Constants = {
         "final_delivered",
         "completed",
         "cancelled",
+      ],
+      quote_status: [
+        "draft",
+        "sent",
+        "approved",
+        "rejected",
+        "revision_requested",
+        "superseded",
+        "expired",
       ],
     },
   },
