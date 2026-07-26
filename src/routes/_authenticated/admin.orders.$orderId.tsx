@@ -382,6 +382,7 @@ function AdminOrderPage() {
       />
 
       <AdminPaymentsPanel orderId={order.id} />
+      <AdminProjectPanel orderId={order.id} />
     </div>
   );
 }
