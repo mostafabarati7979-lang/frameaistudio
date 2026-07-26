@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+Allow: /services
+Allow: /packages
+Allow: /portfolio
+Allow: /blog
+Allow: /about
+Allow: /faq
+Allow: /contact
+
+Disallow: /auth
+Disallow: /reset-password
+Disallow: /dashboard
+Disallow: /orders
+Disallow: /admin
