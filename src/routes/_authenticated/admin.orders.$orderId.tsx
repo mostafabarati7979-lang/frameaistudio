@@ -12,6 +12,7 @@ import {
 import { signOrderFileUrl } from "@/lib/orders.functions";
 import { ORDER_STATUS_LABELS, SERVICE_TYPES } from "@/lib/orders-schema";
 import { fmtToman } from "@/components/orders/QuotesPanel";
+import { AdminContractEditor } from "@/components/orders/AdminContractEditor";
 
 export const Route = createFileRoute("/_authenticated/admin/orders/$orderId")({
   head: () => ({
