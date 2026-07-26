@@ -2,6 +2,7 @@ import { Link, useRouter } from "@tanstack/react-router";
 import { useEffect, useState } from "react";
 import { Menu, X, User } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
+import { NotificationsBell } from "@/components/site/NotificationsBell";
 
 const nav = [
   { to: "/", label: "صفحه اصلی" },
@@ -57,13 +58,16 @@ export function SiteHeader() {
         </nav>
         <div className="hidden lg:flex items-center gap-2">
           {signedIn ? (
-            <Link
-              to="/dashboard"
-              className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-secondary transition"
-            >
-              <User size={16} />
-              پنل کاربری
-            </Link>
+            <>
+              <NotificationsBell />
+              <Link
+                to="/dashboard"
+                className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium hover:bg-secondary transition"
+              >
+                <User size={16} />
+                پنل کاربری
+              </Link>
+            </>
           ) : (
             <Link
               to="/auth"
