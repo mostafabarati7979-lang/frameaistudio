@@ -187,6 +187,9 @@ export const adminApprovePayment = createServerFn({ method: "POST" })
         .from("orders")
         .update({ status: "in_production" })
         .eq("id", p.order_id);
+      // Bootstrap the delivery workflow milestones for this project.
+      const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+      await supabaseAdmin.rpc("bootstrap_project_milestones", { _order_id: p.order_id });
     } else {
       // Final approval — mark completed if project has already delivered final,
       // otherwise leave order state alone (project workflow handles the rest).
@@ -201,6 +204,12 @@ export const adminApprovePayment = createServerFn({ method: "POST" })
           .update({ status: "completed" })
           .eq("id", p.order_id);
       }
+      // Mark the settlement milestone as accepted when final payment clears.
+      await context.supabase
+        .from("project_milestones")
+        .update({ status: "accepted", accepted_at: new Date().toISOString() })
+        .eq("order_id", p.order_id)
+        .eq("key", "settlement");
     }
     return { ok: true };
   });
