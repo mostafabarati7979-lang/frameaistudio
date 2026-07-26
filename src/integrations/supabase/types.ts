@@ -14,6 +14,51 @@ export type Database = {
   }
   public: {
     Tables: {
+      content_items: {
+        Row: {
+          body: Json
+          cover_url: string | null
+          created_at: string
+          created_by: string | null
+          id: string
+          is_published: boolean
+          kind: Database["public"]["Enums"]["content_kind"]
+          slug: string | null
+          sort_order: number
+          summary: string | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          body?: Json
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean
+          kind: Database["public"]["Enums"]["content_kind"]
+          slug?: string | null
+          sort_order?: number
+          summary?: string | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          body?: Json
+          cover_url?: string | null
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          is_published?: boolean
+          kind?: Database["public"]["Enums"]["content_kind"]
+          slug?: string | null
+          sort_order?: number
+          summary?: string | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
       contracts: {
         Row: {
           admin_notes: string | null
@@ -806,6 +851,13 @@ export type Database = {
     }
     Enums: {
       app_role: "admin" | "customer"
+      content_kind:
+        | "service"
+        | "package"
+        | "portfolio"
+        | "blog"
+        | "faq"
+        | "page"
       contract_status: "draft" | "sent" | "approved" | "rejected" | "superseded"
       milestone_key:
         | "kickoff"
@@ -972,6 +1024,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "customer"],
+      content_kind: ["service", "package", "portfolio", "blog", "faq", "page"],
       contract_status: ["draft", "sent", "approved", "rejected", "superseded"],
       milestone_key: [
         "kickoff",
