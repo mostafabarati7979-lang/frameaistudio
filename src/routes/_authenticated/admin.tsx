@@ -56,6 +56,20 @@ function AdminLayout() {
           >
             محتوا
           </Link>
+          <Link
+            to="/admin/reports"
+            activeProps={{ className: "text-primary font-medium" }}
+            className="text-sm hover:text-primary"
+          >
+            گزارش‌ها
+          </Link>
+          <Link
+            to="/admin/audit"
+            activeProps={{ className: "text-primary font-medium" }}
+            className="text-sm hover:text-primary"
+          >
+            لاگ حسابرسی
+          </Link>
           <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-primary mr-auto">
             بازگشت به پنل شخصی
           </Link>
