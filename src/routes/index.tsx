@@ -7,8 +7,8 @@ export const Route = createFileRoute("/")({
     meta: [
       { title: "استودیو فریم‌ای‌آی | لحظه‌ی واقعی شما، با روایت سینمایی" },
       { name: "description", content: "فیلم عروسی، فرمالیته، تیزر سینمایی، ریلز و محتوای تبلیغاتی. استعلام قیمت و ثبت درخواست آنلاین." },
-      { property: "og:title", content: "استودیو فریم‌ای‌آی" },
-      { property: "og:description", content: "لحظه‌ی واقعی شما، با روایت سینمایی آینده." },
+      { property: "og:title", content: "استودیو فریم‌ای‌آی | لحظه‌ی واقعی شما، با روایت سینمایی" },
+      { property: "og:description", content: "فیلم عروسی، فرمالیته، تیزر سینمایی، ریلز و محتوای تبلیغاتی. استعلام قیمت و ثبت درخواست آنلاین." },
     ],
   }),
   component: Home,
