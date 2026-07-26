@@ -15,6 +15,7 @@ import { fmtToman } from "@/components/orders/QuotesPanel";
 import { AdminContractEditor } from "@/components/orders/AdminContractEditor";
 import { AdminPaymentsPanel } from "@/components/orders/AdminPaymentsPanel";
 import { AdminProjectPanel } from "@/components/orders/AdminProjectPanel";
+import { OrderMessagesPanel } from "@/components/orders/OrderMessagesPanel";
 
 export const Route = createFileRoute("/_authenticated/admin/orders/$orderId")({
   head: () => ({
@@ -383,6 +384,7 @@ function AdminOrderPage() {
 
       <AdminPaymentsPanel orderId={order.id} />
       <AdminProjectPanel orderId={order.id} />
+      <OrderMessagesPanel orderId={order.id} />
     </div>
   );
 }
