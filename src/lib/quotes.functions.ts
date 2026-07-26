@@ -37,16 +37,9 @@ const createQuoteSchema = z.object({
   expires_at: z.string().datetime().nullable().optional(),
 });
 
+import { computeQuoteTotals } from "./quotes-math";
 function computeTotals(input: z.infer<typeof createQuoteSchema>) {
-  const subtotal = input.items.reduce(
-    (sum, it) => sum + Math.trunc(it.unit_price_toman) * Math.trunc(it.quantity),
-    0,
-  );
-  const total = Math.max(0, subtotal - input.discount_toman + input.tax_toman);
-  if (input.deposit_toman > total) {
-    throw new Error("مبلغ پیش‌پرداخت نمی‌تواند از مبلغ کل بیشتر باشد.");
-  }
-  return { subtotal, total };
+  return computeQuoteTotals(input);
 }
 
 // ---------- Admin: list all orders (with latest quote info) ----------

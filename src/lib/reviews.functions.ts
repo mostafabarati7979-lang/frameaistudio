@@ -37,6 +37,15 @@ export const upsertMyReview = createServerFn({ method: "POST" })
   .middleware([requireSupabaseAuth])
   .inputValidator((data: unknown) => reviewSchema.parse(data))
   .handler(async ({ data, context }) => {
+    const { checkRateLimit } = await import("./auth.server");
+    const rl = await checkRateLimit({
+      bucket: "reviews:write",
+      key: context.userId,
+      limit: 10,
+      windowSeconds: 3600,
+    });
+    if (!rl.ok) throw new Error("تعداد درخواست‌های اخیر زیاد است.");
+
     const { data: order } = await context.supabase
       .from("orders")
       .select("id, status, customer_id")
