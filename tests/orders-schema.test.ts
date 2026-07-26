@@ -52,6 +52,7 @@ describe("registerFileSchema + allowlist", () => {
       file_name: "name.jpg",
       content_type: "image/jpeg",
       size_bytes: 1024,
+      kind: "image",
     });
     expect(result.success).toBe(true);
   });
