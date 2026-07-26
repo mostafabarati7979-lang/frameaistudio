@@ -9,15 +9,15 @@ import {
 describe("orderDraftSchema", () => {
   it("accepts a minimal valid draft", () => {
     const parsed = orderDraftSchema.parse({
-      service_type: "wedding",
+      service_type: "wedding-film",
       project_title: "عروسی نمونه",
     });
-    expect(parsed.service_type).toBe("wedding");
+    expect(parsed.service_type).toBe("wedding-film");
   });
 
   it("rejects empty project title", () => {
     expect(() =>
-      orderDraftSchema.parse({ service_type: "wedding", project_title: "" }),
+      orderDraftSchema.parse({ service_type: "wedding-film", project_title: "" }),
     ).toThrow();
   });
 });
