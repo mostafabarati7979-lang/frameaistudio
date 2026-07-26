@@ -203,6 +203,7 @@ function OrderDetailPage() {
         )}
 
         <QuotesPanel orderId={order.id} />
+        <ContractsPanel orderId={order.id} />
 
         {/* Files */}
         <div className="mt-8">
