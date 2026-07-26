@@ -14,6 +14,7 @@ import {
 } from "@/lib/orders-schema";
 import { OrderFileUploader } from "@/components/orders/OrderFileUploader";
 import { QuotesPanel } from "@/components/orders/QuotesPanel";
+import { ContractsPanel } from "@/components/orders/ContractsPanel";
 
 export const Route = createFileRoute("/_authenticated/orders/$orderId")({
   head: () => ({
@@ -203,6 +204,7 @@ function OrderDetailPage() {
         )}
 
         <QuotesPanel orderId={order.id} />
+        <ContractsPanel orderId={order.id} />
 
         {/* Files */}
         <div className="mt-8">
