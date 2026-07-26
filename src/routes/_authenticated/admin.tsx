@@ -41,6 +41,21 @@ function AdminLayout() {
           >
             نظرات
           </Link>
+          <Link
+            to="/admin/customers"
+            activeProps={{ className: "text-primary font-medium" }}
+            className="text-sm hover:text-primary"
+          >
+            مشتریان
+          </Link>
+          <Link
+            to="/admin/content/$kind"
+            params={{ kind: "service" }}
+            activeProps={{ className: "text-primary font-medium" }}
+            className="text-sm hover:text-primary"
+          >
+            محتوا
+          </Link>
           <Link to="/dashboard" className="text-sm text-muted-foreground hover:text-primary mr-auto">
             بازگشت به پنل شخصی
           </Link>
