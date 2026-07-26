@@ -18,6 +18,7 @@ import { ContractsPanel } from "@/components/orders/ContractsPanel";
 import { PaymentsPanel } from "@/components/orders/PaymentsPanel";
 import { ProjectTimelinePanel } from "@/components/orders/ProjectTimelinePanel";
 import { OrderMessagesPanel } from "@/components/orders/OrderMessagesPanel";
+import { ReviewPanel } from "@/components/orders/ReviewPanel";
 
 export const Route = createFileRoute("/_authenticated/orders/$orderId")({
   head: () => ({
@@ -211,6 +212,7 @@ function OrderDetailPage() {
         <PaymentsPanel orderId={order.id} />
         <ProjectTimelinePanel orderId={order.id} />
         <OrderMessagesPanel orderId={order.id} />
+        <ReviewPanel orderId={order.id} />
 
 
 
