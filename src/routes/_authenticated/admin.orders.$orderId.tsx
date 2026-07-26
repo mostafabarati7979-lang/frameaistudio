@@ -372,6 +372,12 @@ function AdminOrderPage() {
           </button>
         </div>
       </div>
+
+      <AdminContractEditor
+        orderId={order.id}
+        approvedQuoteId={(quotes as any[]).find((q) => q.status === "approved")?.id ?? null}
+        canCreate={(quotes as any[]).some((q) => q.status === "approved")}
+      />
     </div>
   );
 }
