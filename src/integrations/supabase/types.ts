@@ -402,6 +402,119 @@ export type Database = {
         }
         Relationships: []
       }
+      project_deliverables: {
+        Row: {
+          content_type: string
+          created_at: string
+          file_name: string
+          id: string
+          is_final_output: boolean
+          milestone_id: string
+          notes: string | null
+          order_id: string
+          size_bytes: number
+          storage_path: string
+          uploaded_by: string
+        }
+        Insert: {
+          content_type: string
+          created_at?: string
+          file_name: string
+          id?: string
+          is_final_output?: boolean
+          milestone_id: string
+          notes?: string | null
+          order_id: string
+          size_bytes: number
+          storage_path: string
+          uploaded_by: string
+        }
+        Update: {
+          content_type?: string
+          created_at?: string
+          file_name?: string
+          id?: string
+          is_final_output?: boolean
+          milestone_id?: string
+          notes?: string | null
+          order_id?: string
+          size_bytes?: number
+          storage_path?: string
+          uploaded_by?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_deliverables_milestone_id_fkey"
+            columns: ["milestone_id"]
+            isOneToOne: false
+            referencedRelation: "project_milestones"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "project_deliverables_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      project_milestones: {
+        Row: {
+          accepted_at: string | null
+          admin_notes: string | null
+          created_at: string
+          customer_notes: string | null
+          delivered_at: string | null
+          description: string | null
+          id: string
+          key: Database["public"]["Enums"]["milestone_key"]
+          order_id: string
+          sort_order: number
+          status: Database["public"]["Enums"]["milestone_status"]
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          accepted_at?: string | null
+          admin_notes?: string | null
+          created_at?: string
+          customer_notes?: string | null
+          delivered_at?: string | null
+          description?: string | null
+          id?: string
+          key: Database["public"]["Enums"]["milestone_key"]
+          order_id: string
+          sort_order?: number
+          status?: Database["public"]["Enums"]["milestone_status"]
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          accepted_at?: string | null
+          admin_notes?: string | null
+          created_at?: string
+          customer_notes?: string | null
+          delivered_at?: string | null
+          description?: string | null
+          id?: string
+          key?: Database["public"]["Enums"]["milestone_key"]
+          order_id?: string
+          sort_order?: number
+          status?: Database["public"]["Enums"]["milestone_status"]
+          title?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "project_milestones_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       quote_items: {
         Row: {
           amount_toman: number
@@ -561,6 +674,10 @@ export type Database = {
       [_ in never]: never
     }
     Functions: {
+      bootstrap_project_milestones: {
+        Args: { _order_id: string }
+        Returns: undefined
+      }
       generate_order_code: { Args: never; Returns: string }
       has_role: {
         Args: {
@@ -575,6 +692,20 @@ export type Database = {
     Enums: {
       app_role: "admin" | "customer"
       contract_status: "draft" | "sent" | "approved" | "rejected" | "superseded"
+      milestone_key:
+        | "kickoff"
+        | "initial_cut"
+        | "revision_1"
+        | "revision_2"
+        | "final_output"
+        | "settlement"
+      milestone_status:
+        | "pending"
+        | "in_progress"
+        | "delivered"
+        | "accepted"
+        | "revision_requested"
+        | "skipped"
       order_status:
         | "draft"
         | "submitted"
@@ -727,6 +858,22 @@ export const Constants = {
     Enums: {
       app_role: ["admin", "customer"],
       contract_status: ["draft", "sent", "approved", "rejected", "superseded"],
+      milestone_key: [
+        "kickoff",
+        "initial_cut",
+        "revision_1",
+        "revision_2",
+        "final_output",
+        "settlement",
+      ],
+      milestone_status: [
+        "pending",
+        "in_progress",
+        "delivered",
+        "accepted",
+        "revision_requested",
+        "skipped",
+      ],
       order_status: [
         "draft",
         "submitted",
