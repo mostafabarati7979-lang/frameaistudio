@@ -14,6 +14,72 @@ export type Database = {
   }
   public: {
     Tables: {
+      contracts: {
+        Row: {
+          admin_notes: string | null
+          body: string
+          created_at: string
+          created_by: string
+          customer_response_note: string | null
+          decided_at: string | null
+          id: string
+          order_id: string
+          quote_id: string | null
+          sent_at: string | null
+          status: Database["public"]["Enums"]["contract_status"]
+          title: string
+          updated_at: string
+          version: number
+        }
+        Insert: {
+          admin_notes?: string | null
+          body: string
+          created_at?: string
+          created_by: string
+          customer_response_note?: string | null
+          decided_at?: string | null
+          id?: string
+          order_id: string
+          quote_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["contract_status"]
+          title: string
+          updated_at?: string
+          version: number
+        }
+        Update: {
+          admin_notes?: string | null
+          body?: string
+          created_at?: string
+          created_by?: string
+          customer_response_note?: string | null
+          decided_at?: string | null
+          id?: string
+          order_id?: string
+          quote_id?: string | null
+          sent_at?: string | null
+          status?: Database["public"]["Enums"]["contract_status"]
+          title?: string
+          updated_at?: string
+          version?: number
+        }
+        Relationships: [
+          {
+            foreignKeyName: "contracts_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "contracts_quote_id_fkey"
+            columns: ["quote_id"]
+            isOneToOne: false
+            referencedRelation: "quotes"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       login_attempts: {
         Row: {
           created_at: string
@@ -441,10 +507,12 @@ export type Database = {
         }
         Returns: boolean
       }
+      next_contract_version: { Args: { _order_id: string }; Returns: number }
       next_quote_version: { Args: { _order_id: string }; Returns: number }
     }
     Enums: {
       app_role: "admin" | "customer"
+      contract_status: "draft" | "sent" | "approved" | "rejected" | "superseded"
       order_status:
         | "draft"
         | "submitted"
@@ -594,6 +662,7 @@ export const Constants = {
   public: {
     Enums: {
       app_role: ["admin", "customer"],
+      contract_status: ["draft", "sent", "approved", "rejected", "superseded"],
       order_status: [
         "draft",
         "submitted",
