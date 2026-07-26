@@ -212,6 +212,7 @@ function OrderDetailPage() {
         <PaymentsPanel orderId={order.id} />
         <ProjectTimelinePanel orderId={order.id} />
         <OrderMessagesPanel orderId={order.id} />
+        <ReviewPanel orderId={order.id} />
 
 
 
