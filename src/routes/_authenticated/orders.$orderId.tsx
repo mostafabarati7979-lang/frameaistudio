@@ -16,6 +16,7 @@ import { OrderFileUploader } from "@/components/orders/OrderFileUploader";
 import { QuotesPanel } from "@/components/orders/QuotesPanel";
 import { ContractsPanel } from "@/components/orders/ContractsPanel";
 import { PaymentsPanel } from "@/components/orders/PaymentsPanel";
+import { ProjectTimelinePanel } from "@/components/orders/ProjectTimelinePanel";
 
 export const Route = createFileRoute("/_authenticated/orders/$orderId")({
   head: () => ({
@@ -207,6 +208,8 @@ function OrderDetailPage() {
         <QuotesPanel orderId={order.id} />
         <ContractsPanel orderId={order.id} />
         <PaymentsPanel orderId={order.id} />
+        <ProjectTimelinePanel orderId={order.id} />
+
 
 
         {/* Files */}
