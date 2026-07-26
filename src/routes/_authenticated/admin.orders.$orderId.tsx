@@ -13,6 +13,7 @@ import { signOrderFileUrl } from "@/lib/orders.functions";
 import { ORDER_STATUS_LABELS, SERVICE_TYPES } from "@/lib/orders-schema";
 import { fmtToman } from "@/components/orders/QuotesPanel";
 import { AdminContractEditor } from "@/components/orders/AdminContractEditor";
+import { AdminPaymentsPanel } from "@/components/orders/AdminPaymentsPanel";
 
 export const Route = createFileRoute("/_authenticated/admin/orders/$orderId")({
   head: () => ({
@@ -378,6 +379,8 @@ function AdminOrderPage() {
         approvedQuoteId={(quotes as any[]).find((q) => q.status === "approved")?.id ?? null}
         canCreate={(quotes as any[]).some((q) => q.status === "approved")}
       />
+
+      <AdminPaymentsPanel orderId={order.id} />
     </div>
   );
 }
