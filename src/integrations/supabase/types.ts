@@ -316,6 +316,68 @@ export type Database = {
         }
         Relationships: []
       }
+      payments: {
+        Row: {
+          admin_notes: string | null
+          amount_toman: number
+          created_at: string
+          customer_id: string
+          id: string
+          kind: Database["public"]["Enums"]["payment_kind"]
+          note: string | null
+          order_id: string
+          paid_at: string | null
+          receipt_path: string | null
+          reference_no: string | null
+          reviewed_at: string | null
+          reviewed_by: string | null
+          status: Database["public"]["Enums"]["payment_status"]
+          updated_at: string
+        }
+        Insert: {
+          admin_notes?: string | null
+          amount_toman: number
+          created_at?: string
+          customer_id: string
+          id?: string
+          kind: Database["public"]["Enums"]["payment_kind"]
+          note?: string | null
+          order_id: string
+          paid_at?: string | null
+          receipt_path?: string | null
+          reference_no?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+        }
+        Update: {
+          admin_notes?: string | null
+          amount_toman?: number
+          created_at?: string
+          customer_id?: string
+          id?: string
+          kind?: Database["public"]["Enums"]["payment_kind"]
+          note?: string | null
+          order_id?: string
+          paid_at?: string | null
+          receipt_path?: string | null
+          reference_no?: string | null
+          reviewed_at?: string | null
+          reviewed_by?: string | null
+          status?: Database["public"]["Enums"]["payment_status"]
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_order_id_fkey"
+            columns: ["order_id"]
+            isOneToOne: false
+            referencedRelation: "orders"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       profiles: {
         Row: {
           created_at: string
@@ -526,6 +588,8 @@ export type Database = {
         | "final_delivered"
         | "completed"
         | "cancelled"
+      payment_kind: "deposit" | "final"
+      payment_status: "pending" | "approved" | "rejected" | "cancelled"
       quote_status:
         | "draft"
         | "sent"
@@ -677,6 +741,8 @@ export const Constants = {
         "completed",
         "cancelled",
       ],
+      payment_kind: ["deposit", "final"],
+      payment_status: ["pending", "approved", "rejected", "cancelled"],
       quote_status: [
         "draft",
         "sent",
