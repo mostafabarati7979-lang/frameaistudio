@@ -243,30 +243,21 @@ function OtpLoginForm({ nextPath }: { nextPath?: string }) {
 // -------------------- Signup --------------------
 function SignupForm({ nextPath }: { nextPath?: string }) {
   const navigate = useNavigate();
-  const { send, cooldown } = useOtpRequest();
-  const doSignup = useServerFn(signUpWithOtp);
-  const [step, setStep] = useState<1 | 2>(1);
+  const doSignup = useServerFn(signUpWithPassword);
   const [mobile, setMobile] = useState("");
-  const [normalized, setNormalized] = useState("");
-  const [fullName, setFullName] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
-  const [code, setCode] = useState("");
-  const [agree, setAgree] = useState(false);
   const [loading, setLoading] = useState(false);
 
-  async function requestCode() {
-    const m = await send(mobile, "signup");
-    if (m) { setNormalized(m); setStep(2); }
-  }
   async function submit(e: React.FormEvent) {
     e.preventDefault();
+    const norm = normalizeIranianMobile(mobile);
+    if (!norm) return toast.error("شماره موبایل معتبر نیست.");
     if (password !== confirm) return toast.error("رمز عبور و تکرار آن یکسان نیست.");
     if (password.length < 8) return toast.error("رمز باید حداقل ۸ کاراکتر باشد.");
-    if (!agree) return toast.error("پذیرش قوانین الزامی است.");
     setLoading(true);
     try {
-      const res = await doSignup({ data: { mobile: normalized, code, password, fullName } });
+      const res = await doSignup({ data: { mobile: norm, password } });
       const { error } = await supabase.auth.signInWithPassword({ email: res.email, password });
       if (error) throw error;
       toast.success("ثبت‌نام با موفقیت انجام شد.");
@@ -279,24 +270,34 @@ function SignupForm({ nextPath }: { nextPath?: string }) {
   }
   return (
     <form onSubmit={submit} className="space-y-4">
-      <Input label="نام و نام خانوادگی" value={fullName} onChange={(e) => setFullName(e.target.value)} required minLength={2} maxLength={100} />
-      <Input label="شماره موبایل" placeholder="۰۹۱۲۳۴۵۶۷۸۹" value={mobile} onChange={(e) => setMobile(e.target.value)} inputMode="tel" autoComplete="tel" required disabled={step === 2} />
-      {step === 1 ? (
-        <button type="button" onClick={requestCode} disabled={cooldown > 0} className="w-full rounded-md bg-primary py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90 transition disabled:opacity-50">
-          {cooldown > 0 ? `ارسال مجدد در ${cooldown} ثانیه` : "ارسال کد تایید"}
-        </button>
-      ) : (
-        <>
-          <Input label="کد تایید ۶ رقمی" value={code} onChange={(e) => setCode(e.target.value)} inputMode="numeric" maxLength={6} required />
-          <Input label="رمز عبور (حداقل ۸ کاراکتر)" type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} required autoComplete="new-password" />
-          <Input label="تکرار رمز عبور" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} minLength={8} required autoComplete="new-password" />
-          <label className="flex items-start gap-2 text-xs text-muted-foreground">
-            <input type="checkbox" checked={agree} onChange={(e) => setAgree(e.target.checked)} className="mt-0.5" />
-            <span>قوانین استودیو و حریم خصوصی را می‌پذیرم.</span>
-          </label>
-          <SubmitBtn loading={loading}>ثبت‌نام</SubmitBtn>
-        </>
-      )}
+      <Input
+        label="شماره موبایل"
+        placeholder="۰۹۱۲۳۴۵۶۷۸۹"
+        value={mobile}
+        onChange={(e) => setMobile(e.target.value)}
+        inputMode="tel"
+        autoComplete="tel"
+        required
+      />
+      <Input
+        label="رمز عبور (حداقل ۸ کاراکتر)"
+        type="password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        minLength={8}
+        required
+        autoComplete="new-password"
+      />
+      <Input
+        label="تکرار رمز عبور"
+        type="password"
+        value={confirm}
+        onChange={(e) => setConfirm(e.target.value)}
+        minLength={8}
+        required
+        autoComplete="new-password"
+      />
+      <SubmitBtn loading={loading}>ثبت‌نام</SubmitBtn>
     </form>
   );
 }
