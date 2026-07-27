@@ -75,6 +75,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
       { name: "twitter:description", content: "فیلم عروسی، فرمالیته، تیزر سینمایی، ریلز و محتوای تبلیغاتی. استعلام قیمت و ثبت درخواست آنلاین." },
       { property: "og:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/DUUkN7AQEHWiZ3VQie7EtgKPCE63/social-images/social-1785068072355-1.webp" },
       { name: "twitter:image", content: "https://storage.googleapis.com/gpt-engineer-file-uploads/DUUkN7AQEHWiZ3VQie7EtgKPCE63/social-images/social-1785068072355-1.webp" },
+      { name: "google-site-verification", content: "MGSQEzvfo_URuHDwoHk17iW5tPtoRQaZ_uboIZYpM1o" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
