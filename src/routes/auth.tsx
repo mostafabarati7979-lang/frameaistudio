@@ -6,7 +6,7 @@ import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
 import {
   requestOtp,
-  signUpWithOtp,
+  signUpWithPassword,
   verifyOtpForLogin,
   logPasswordLogin,
   resetPasswordWithOtp,
