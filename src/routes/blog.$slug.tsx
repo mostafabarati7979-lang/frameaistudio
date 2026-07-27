@@ -7,19 +7,46 @@ export const Route = createFileRoute("/blog/$slug")({
     if (!post) throw notFound();
     return { post };
   },
-  head: ({ loaderData }) => {
+  head: ({ loaderData, params }) => {
     if (!loaderData) {
       return { meta: [{ title: "مقاله پیدا نشد" }, { name: "robots", content: "noindex" }] };
     }
     const { post } = loaderData;
+    const url = `https://frameaistudio.lovable.app/blog/${params.slug}`;
     return {
       meta: [
         { title: `${post.title} | وبلاگ فریم‌ای‌آی` },
         { name: "description", content: post.excerpt },
         { property: "og:title", content: post.title },
         { property: "og:description", content: post.excerpt },
+        { property: "og:type", content: "article" },
+        { property: "og:url", content: url },
         { property: "og:image", content: post.cover },
         { name: "twitter:image", content: post.cover },
+      ],
+      links: [{ rel: "canonical", href: url }],
+      scripts: [
+        {
+          type: "application/ld+json",
+          children: JSON.stringify({
+            "@context": "https://schema.org",
+            "@type": "Article",
+            headline: post.title,
+            description: post.excerpt,
+            image: post.cover,
+            datePublished: post.date,
+            author: { "@type": "Organization", name: "استودیو فریم‌ای‌آی" },
+            publisher: {
+              "@type": "Organization",
+              name: "استودیو فریم‌ای‌آی",
+              logo: {
+                "@type": "ImageObject",
+                url: "https://frameaistudio.lovable.app/favicon.ico",
+              },
+            },
+            mainEntityOfPage: url,
+          }),
+        },
       ],
     };
   },

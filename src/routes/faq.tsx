@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { faqs } from "../lib/site-data";
 
+
 export const Route = createFileRoute("/faq")({
   head: () => ({
     meta: [
@@ -8,6 +9,22 @@ export const Route = createFileRoute("/faq")({
       { name: "description", content: "پاسخ به سوالات متداول درباره خدمات، فرآیند سفارش، تحویل و اصلاحات استودیو فریم‌ای‌آی." },
       { property: "og:title", content: "سوالات متداول" },
       { property: "og:description", content: "پاسخ سوال‌های پرتکرار شما." },
+      { property: "og:url", content: "https://frameaistudio.lovable.app/faq" },
+    ],
+    links: [{ rel: "canonical", href: "https://frameaistudio.lovable.app/faq" }],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "FAQPage",
+          mainEntity: faqs.map((f) => ({
+            "@type": "Question",
+            name: f.q,
+            acceptedAnswer: { "@type": "Answer", text: f.a },
+          })),
+        }),
+      },
     ],
   }),
   component: FAQPage,

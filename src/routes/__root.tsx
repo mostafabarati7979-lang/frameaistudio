@@ -85,6 +85,22 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         href: "https://fonts.googleapis.com/css2?family=Vazirmatn:wght@300;400;500;600;700;800&display=swap",
       },
     ],
+    scripts: [
+      {
+        type: "application/ld+json",
+        children: JSON.stringify({
+          "@context": "https://schema.org",
+          "@type": "Organization",
+          name: "استودیو فریم‌ای‌آی",
+          alternateName: "FrameAI Studio",
+          url: "https://frameaistudio.lovable.app",
+          logo: "https://frameaistudio.lovable.app/favicon.ico",
+          description:
+            "استودیو تخصصی روایت سینمایی: فیلم عروسی، فرمالیته، تیزر سینمایی و محتوای تبلیغاتی.",
+          areaServed: "IR",
+        }),
+      },
+    ],
   }),
   shellComponent: RootShell,
   component: RootComponent,

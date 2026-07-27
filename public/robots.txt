@@ -13,3 +13,5 @@ Disallow: /reset-password
 Disallow: /dashboard
 Disallow: /orders
 Disallow: /admin
+
+Sitemap: https://frameaistudio.lovable.app/sitemap.xml
