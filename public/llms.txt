@@ -1,0 +1,20 @@
+# استودیو فریم‌ای‌آی (FrameAI Studio)
+
+> استودیو تخصصی روایت سینمایی: فیلم عروسی، فرمالیته، تیزر سینمایی، ریلز و محتوای تبلیغاتی. سایت به زبان فارسی و راست‌چین.
+
+FrameAI Studio is a Persian-language cinematic film production studio specializing in wedding films, pre-wedding stories, formal ceremony coverage, cinematic brand teasers, and social-media reels. Public site shows services and portfolio only — pricing is issued privately after project review.
+
+## Pages
+
+- [Home](/): Studio intro, featured services, packages, portfolio highlights.
+- [Services](/services): Full list of film & video services offered.
+- [Packages](/packages): Curated service bundles (pricing revealed via quote).
+- [Portfolio](/portfolio): Selected client work and demo pieces.
+- [Blog](/blog): Articles on cinematic filmmaking, wedding videography, and content strategy.
+- [About](/about): Studio story, team, and approach.
+- [FAQ](/faq): Answers to common questions about process, delivery, and revisions.
+- [Contact](/contact): Project inquiry form to request a custom quote.
+
+## Optional
+
+- [Sitemap](/sitemap.xml)
