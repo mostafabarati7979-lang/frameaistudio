@@ -9,6 +9,16 @@ export const Route = createFileRoute("/")({
       { name: "description", content: "فیلم عروسی، فرمالیته، تیزر سینمایی، ریلز و محتوای تبلیغاتی. استعلام قیمت و ثبت درخواست آنلاین." },
       { property: "og:title", content: "استودیو فریم‌ای‌آی | لحظه‌ی واقعی شما، با روایت سینمایی" },
       { property: "og:description", content: "فیلم عروسی، فرمالیته، تیزر سینمایی، ریلز و محتوای تبلیغاتی. استعلام قیمت و ثبت درخواست آنلاین." },
+      { property: "og:url", content: "https://frameaistudio.lovable.app/" },
+    ],
+    links: [
+      { rel: "canonical", href: "https://frameaistudio.lovable.app/" },
+      {
+        rel: "preload",
+        as: "image",
+        href: "https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=2000&q=80",
+        fetchpriority: "high",
+      },
     ],
   }),
   component: Home,
@@ -19,15 +29,24 @@ function Home() {
     <div>
       {/* HERO */}
       <section className="relative overflow-hidden">
-        <div
-          className="absolute inset-0 opacity-30"
-          style={{
-            backgroundImage:
-              "url('https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=2000&q=80')",
-            backgroundSize: "cover",
-            backgroundPosition: "center",
-          }}
+        <img
+          src="https://images.unsplash.com/photo-1519741497674-611481863552?auto=format&fit=crop&w=2000&q=80"
+          alt=""
+          aria-hidden="true"
+          width={2000}
+          height={1125}
+          // @ts-expect-error fetchpriority is a valid HTML attribute
+          fetchpriority="high"
+          decoding="async"
+          className="absolute inset-0 h-full w-full object-cover opacity-30"
         />
+        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
+        <div className="container-page relative py-24 md:py-36">
+          <div className="max-w-3xl">
+            <p className="inline-flex items-center gap-2 rounded-full border border-[color:var(--gold)]/40 bg-[color:var(--gold)]/5 px-4 py-1.5 text-xs text-[color:var(--gold)]">
+              <Sparkles size={14} /> استودیو تخصصی روایت سینمایی
+            </p>
+
         <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
         <div className="container-page relative py-24 md:py-36">
           <div className="max-w-3xl">
