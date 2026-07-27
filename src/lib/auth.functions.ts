@@ -202,6 +202,72 @@ export const signUpWithOtp = createServerFn({ method: "POST" })
     return { ok: true, email };
   });
 
+// ---------- Sign up with mobile + password (no OTP) ----------
+export const signUpWithPassword = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        mobile: z.string().min(1),
+        password: z.string().min(8).max(72),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const mobile = normalizeIranianMobile(data.mobile);
+    if (!mobile) throw new Error("شماره موبایل معتبر نیست.");
+
+    const { checkRateLimit } = await import("./auth.server");
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+
+    const ip = getIp();
+    const rl = await checkRateLimit({
+      bucket: "signup:ip",
+      key: ip,
+      limit: 10,
+      windowSeconds: 3600,
+    });
+    if (!rl.ok) {
+      throw new Error("تعداد درخواست‌های ثبت‌نام از این آدرس زیاد است. بعداً تلاش کنید.");
+    }
+
+    const { data: existing } = await supabaseAdmin
+      .from("profiles")
+      .select("id")
+      .eq("mobile", mobile)
+      .maybeSingle();
+    if (existing) {
+      throw new Error("این شماره موبایل قبلاً ثبت‌نام کرده است.");
+    }
+
+    const email = mobileToInternalEmail(mobile);
+    const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
+      email,
+      password: data.password,
+      email_confirm: true,
+      user_metadata: { mobile },
+    });
+    if (error || !created.user) {
+      throw new Error("ثبت‌نام ناموفق بود. بعداً تلاش کنید.");
+    }
+
+    const userId = created.user.id;
+    const { error: pErr } = await supabaseAdmin.from("profiles").insert({
+      id: userId,
+      mobile,
+    });
+    if (pErr) {
+      await supabaseAdmin.auth.admin.deleteUser(userId);
+      throw new Error("ثبت‌نام ناموفق بود.");
+    }
+    await supabaseAdmin
+      .from("user_roles")
+      .insert({ user_id: userId, role: "customer" });
+
+    return { ok: true, email };
+  });
+
 // ---------- Verify OTP for login: returns a hashed token the client can exchange for a session ----------
 export const verifyOtpForLogin = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
