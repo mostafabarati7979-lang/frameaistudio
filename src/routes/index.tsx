@@ -46,13 +46,6 @@ function Home() {
             <p className="inline-flex items-center gap-2 rounded-full border border-[color:var(--gold)]/40 bg-[color:var(--gold)]/5 px-4 py-1.5 text-xs text-[color:var(--gold)]">
               <Sparkles size={14} /> استودیو تخصصی روایت سینمایی
             </p>
-
-        <div className="absolute inset-0 bg-gradient-to-b from-background/60 via-background/80 to-background" />
-        <div className="container-page relative py-24 md:py-36">
-          <div className="max-w-3xl">
-            <p className="inline-flex items-center gap-2 rounded-full border border-[color:var(--gold)]/40 bg-[color:var(--gold)]/5 px-4 py-1.5 text-xs text-[color:var(--gold)]">
-              <Sparkles size={14} /> استودیو تخصصی روایت سینمایی
-            </p>
             <h1 className="mt-6 text-4xl md:text-6xl font-extrabold leading-tight">
               لحظه‌ی <span className="text-gradient-gold">واقعی</span> شما،
               <br /> با روایت <span className="text-gradient-gold">سینمایی</span> آینده.
