@@ -9,6 +9,7 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as ServicesRouteImport } from './routes/services'
 import { Route as PortfolioRouteImport } from './routes/portfolio'
 import { Route as PackagesRouteImport } from './routes/packages'
@@ -36,6 +37,11 @@ import { Route as AuthenticatedAdminOrdersIndexRouteImport } from './routes/_aut
 import { Route as AuthenticatedAdminOrdersOrderIdRouteImport } from './routes/_authenticated/admin.orders.$orderId'
 import { Route as AuthenticatedAdminContentKindRouteImport } from './routes/_authenticated/admin.content.$kind'
 
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const ServicesRoute = ServicesRouteImport.update({
   id: '/services',
   path: '/services',
@@ -184,6 +190,7 @@ export interface FileRoutesByFullPath {
   '/packages': typeof PackagesRoute
   '/portfolio': typeof PortfolioRouteWithChildren
   '/services': typeof ServicesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -209,6 +216,7 @@ export interface FileRoutesByTo {
   '/faq': typeof FaqRoute
   '/packages': typeof PackagesRoute
   '/services': typeof ServicesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/admin': typeof AuthenticatedAdminRouteWithChildren
   '/dashboard': typeof AuthenticatedDashboardRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -238,6 +246,7 @@ export interface FileRoutesById {
   '/packages': typeof PackagesRoute
   '/portfolio': typeof PortfolioRouteWithChildren
   '/services': typeof ServicesRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/_authenticated/admin': typeof AuthenticatedAdminRouteWithChildren
   '/_authenticated/dashboard': typeof AuthenticatedDashboardRoute
   '/blog/$slug': typeof BlogSlugRoute
@@ -267,6 +276,7 @@ export interface FileRouteTypes {
     | '/packages'
     | '/portfolio'
     | '/services'
+    | '/sitemap.xml'
     | '/admin'
     | '/dashboard'
     | '/blog/$slug'
@@ -292,6 +302,7 @@ export interface FileRouteTypes {
     | '/faq'
     | '/packages'
     | '/services'
+    | '/sitemap.xml'
     | '/admin'
     | '/dashboard'
     | '/blog/$slug'
@@ -320,6 +331,7 @@ export interface FileRouteTypes {
     | '/packages'
     | '/portfolio'
     | '/services'
+    | '/sitemap.xml'
     | '/_authenticated/admin'
     | '/_authenticated/dashboard'
     | '/blog/$slug'
@@ -349,10 +361,18 @@ export interface RootRouteChildren {
   PackagesRoute: typeof PackagesRoute
   PortfolioRoute: typeof PortfolioRouteWithChildren
   ServicesRoute: typeof ServicesRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
 }
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/services': {
       id: '/services'
       path: '/services'
@@ -617,6 +637,7 @@ const rootRouteChildren: RootRouteChildren = {
   PackagesRoute: PackagesRoute,
   PortfolioRoute: PortfolioRouteWithChildren,
   ServicesRoute: ServicesRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
 }
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
