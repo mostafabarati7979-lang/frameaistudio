@@ -326,14 +326,18 @@ export const requestQuoteRevision = createServerFn({ method: "POST" })
     if (quote.status !== "sent") {
       throw new Error("امکان درخواست بازنگری برای این پیش‌فاکتور وجود ندارد.");
     }
-    await context.supabase
+    const { data: updQ, error: updQErr } = await context.supabase
       .from("quotes")
       .update({
         status: "revision_requested",
         decided_at: new Date().toISOString(),
         customer_response_note: data.note,
       })
-      .eq("id", quote.id);
+      .eq("id", quote.id)
+      .select("id");
+    if (updQErr || !updQ || updQ.length === 0) {
+      throw new Error("ثبت درخواست بازنگری ناموفق بود.");
+    }
     // Order stays 'quoted' — admin will issue a new version.
     return { ok: true };
   });
