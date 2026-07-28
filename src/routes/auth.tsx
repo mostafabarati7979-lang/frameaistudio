@@ -9,7 +9,15 @@ import { signUpWithEmail, logPasswordLogin } from "@/lib/auth.functions";
 type Mode = "signin" | "signup" | "reset";
 
 const searchSchema = z.object({
-  mode: z.enum(["signin", "signup", "reset"]).optional(),
+  mode: z
+    .string()
+    .optional()
+    .transform((v): Mode | undefined => {
+      if (!v) return undefined;
+      if (v === "signin" || v === "signup" || v === "reset") return v;
+      if (v.startsWith("signin")) return "signin";
+      return undefined;
+    }),
   next: z.string().optional(),
 });
 
