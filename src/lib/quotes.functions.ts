@@ -239,14 +239,22 @@ export const approveQuote = createServerFn({ method: "POST" })
         .eq("id", quote.id);
       throw new Error("مهلت این پیش‌فاکتور به پایان رسیده است.");
     }
-    await context.supabase
+    const { data: updQ, error: updQErr } = await context.supabase
       .from("quotes")
       .update({ status: "approved", decided_at: new Date().toISOString() })
-      .eq("id", quote.id);
-    await context.supabase
+      .eq("id", quote.id)
+      .select("id");
+    if (updQErr || !updQ || updQ.length === 0) {
+      throw new Error("ثبت تأیید پیش‌فاکتور ناموفق بود.");
+    }
+    const { data: updO, error: updOErr } = await context.supabase
       .from("orders")
       .update({ status: "contract_pending" })
-      .eq("id", quote.order_id);
+      .eq("id", quote.order_id)
+      .select("id");
+    if (updOErr || !updO || updO.length === 0) {
+      throw new Error("به‌روزرسانی وضعیت سفارش ناموفق بود.");
+    }
     return { ok: true };
   });
 
