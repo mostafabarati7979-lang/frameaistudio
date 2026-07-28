@@ -4,19 +4,12 @@ import { useState } from "react";
 import { z } from "zod";
 import { toast } from "sonner";
 import { supabase } from "@/integrations/supabase/client";
-import {
-  requestOtp,
-  signUpWithPassword,
-  verifyOtpForLogin,
-  logPasswordLogin,
-  resetPasswordWithOtp,
-} from "@/lib/auth.functions";
-import { normalizeIranianMobile, mobileToInternalEmail } from "@/lib/mobile";
+import { signUpWithEmail, logPasswordLogin } from "@/lib/auth.functions";
 
-type Mode = "signin-password" | "signin-otp" | "signup" | "reset";
+type Mode = "signin" | "signup" | "reset";
 
 const searchSchema = z.object({
-  mode: z.enum(["signin-password", "signin-otp", "signup", "reset"]).optional(),
+  mode: z.enum(["signin", "signup", "reset"]).optional(),
   next: z.string().optional(),
 });
 
@@ -25,7 +18,7 @@ export const Route = createFileRoute("/auth")({
   head: () => ({
     meta: [
       { title: "ورود و ثبت‌نام | استودیو فریم‌ای‌آی" },
-      { name: "description", content: "ورود یا ثبت‌نام با شماره موبایل و کد تایید در استودیو فریم‌ای‌آی." },
+      { name: "description", content: "ورود یا ثبت‌نام در استودیو فریم‌ای‌آی با ایمیل و رمز عبور." },
       { name: "robots", content: "noindex, nofollow" },
     ],
   }),
@@ -34,7 +27,7 @@ export const Route = createFileRoute("/auth")({
 
 function AuthPage() {
   const search = useSearch({ from: "/auth" });
-  const initial: Mode = search.mode ?? "signin-password";
+  const initial: Mode = search.mode ?? "signin";
   const [mode, setMode] = useState<Mode>(initial);
 
   return (
@@ -47,12 +40,9 @@ function AuthPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-2 gap-1 rounded-lg bg-secondary p-1 mb-6 text-xs">
-          <TabBtn active={mode === "signin-password"} onClick={() => setMode("signin-password")}>
-            ورود با رمز
-          </TabBtn>
-          <TabBtn active={mode === "signin-otp"} onClick={() => setMode("signin-otp")}>
-            ورود با کد یکبار‌مصرف
+        <div className="grid grid-cols-3 gap-1 rounded-lg bg-secondary p-1 mb-6 text-xs">
+          <TabBtn active={mode === "signin"} onClick={() => setMode("signin")}>
+            ورود
           </TabBtn>
           <TabBtn active={mode === "signup"} onClick={() => setMode("signup")}>
             ثبت‌نام
@@ -63,10 +53,9 @@ function AuthPage() {
         </div>
 
         <div className="rounded-xl border border-border/70 bg-card/50 p-6 backdrop-blur-sm">
-          {mode === "signin-password" && <PasswordLoginForm onSwitch={setMode} nextPath={search.next} />}
-          {mode === "signin-otp" && <OtpLoginForm nextPath={search.next} />}
+          {mode === "signin" && <LoginForm onSwitch={setMode} nextPath={search.next} />}
           {mode === "signup" && <SignupForm nextPath={search.next} />}
-          {mode === "reset" && <ResetForm onDone={() => setMode("signin-password")} />}
+          {mode === "reset" && <ResetForm onDone={() => setMode("signin")} />}
         </div>
 
         <p className="mt-6 text-center text-xs text-muted-foreground">
@@ -77,15 +66,7 @@ function AuthPage() {
   );
 }
 
-function TabBtn({
-  active,
-  onClick,
-  children,
-}: {
-  active: boolean;
-  onClick: () => void;
-  children: React.ReactNode;
-}) {
+function TabBtn({ active, onClick, children }: { active: boolean; onClick: () => void; children: React.ReactNode }) {
   return (
     <button
       onClick={onClick}
@@ -123,39 +104,28 @@ function SubmitBtn({ children, loading }: { children: React.ReactNode; loading?:
   );
 }
 
-// -------------------- Sign in with password --------------------
-function PasswordLoginForm({
-  onSwitch,
-  nextPath,
-}: {
-  onSwitch: (m: Mode) => void;
-  nextPath?: string;
-}) {
+// -------------------- Sign in (email + password) --------------------
+function LoginForm({ onSwitch, nextPath }: { onSwitch: (m: Mode) => void; nextPath?: string }) {
   const navigate = useNavigate();
   const logLogin = useServerFn(logPasswordLogin);
-  const [mobile, setMobile] = useState("");
+  const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const norm = normalizeIranianMobile(mobile);
-    if (!norm) return toast.error("شماره موبایل معتبر نیست.");
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({
-      email: mobileToInternalEmail(norm),
-      password,
-    });
+    const { error } = await supabase.auth.signInWithPassword({ email: email.trim().toLowerCase(), password });
     setLoading(false);
-    try { await logLogin({ data: { mobile: norm, success: !error } }); } catch {}
-    if (error) return toast.error("شماره موبایل یا رمز عبور نامعتبر است.");
+    try { await logLogin({ data: { mobile: email, success: !error } }); } catch {}
+    if (error) return toast.error("ایمیل یا رمز عبور نامعتبر است.");
     toast.success("خوش آمدید!");
     navigate({ to: (nextPath as "/dashboard") ?? "/dashboard" });
   }
 
   return (
     <form onSubmit={submit} className="space-y-4">
-      <Input label="شماره موبایل" placeholder="۰۹۱۲۳۴۵۶۷۸۹" value={mobile} onChange={(e) => setMobile(e.target.value)} inputMode="tel" autoComplete="tel" required />
+      <Input label="ایمیل" type="email" placeholder="you@gmail.com" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
       <Input label="رمز عبور" type="password" value={password} onChange={(e) => setPassword(e.target.value)} autoComplete="current-password" required />
       <SubmitBtn loading={loading}>ورود</SubmitBtn>
       <div className="flex items-center justify-between text-xs text-muted-foreground">
@@ -166,84 +136,12 @@ function PasswordLoginForm({
   );
 }
 
-// -------------------- OTP request helper --------------------
-function useOtpRequest() {
-  const req = useServerFn(requestOtp);
-  const [cooldown, setCooldown] = useState(0);
-  async function send(mobile: string, purpose: "signup" | "login" | "reset") {
-    const norm = normalizeIranianMobile(mobile);
-    if (!norm) { toast.error("شماره موبایل معتبر نیست."); return null; }
-    try {
-      await req({ data: { mobile: norm, purpose } });
-      toast.success("کد تایید ارسال شد.");
-      setCooldown(60);
-      const iv = setInterval(() => setCooldown((c) => { if (c <= 1) { clearInterval(iv); return 0; } return c - 1; }), 1000);
-      return norm;
-    } catch (e) {
-      toast.error((e as Error).message);
-      return null;
-    }
-  }
-  return { send, cooldown };
-}
-
-// -------------------- OTP login --------------------
-function OtpLoginForm({ nextPath }: { nextPath?: string }) {
-  const navigate = useNavigate();
-  const { send, cooldown } = useOtpRequest();
-  const verify = useServerFn(verifyOtpForLogin);
-  const [mobile, setMobile] = useState("");
-  const [code, setCode] = useState("");
-  const [sent, setSent] = useState<string | null>(null);
-  const [loading, setLoading] = useState(false);
-
-  async function requestCode() {
-    const m = await send(mobile, "login");
-    if (m) setSent(m);
-  }
-  async function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!sent) return;
-    setLoading(true);
-    try {
-      const res = await verify({ data: { mobile: sent, code } });
-      const { error } = await supabase.auth.verifyOtp({
-        token_hash: res.tokenHash,
-        type: "magiclink",
-      });
-      if (error) throw new Error("ورود ناموفق بود.");
-      toast.success("خوش آمدید!");
-      navigate({ to: (nextPath as "/dashboard") ?? "/dashboard" });
-    } catch (e) {
-      toast.error((e as Error).message);
-    } finally {
-      setLoading(false);
-    }
-  }
-  return (
-    <form onSubmit={submit} className="space-y-4">
-      <Input label="شماره موبایل" placeholder="۰۹۱۲۳۴۵۶۷۸۹" value={mobile} onChange={(e) => setMobile(e.target.value)} inputMode="tel" autoComplete="tel" required disabled={!!sent} />
-      {!sent ? (
-        <button type="button" onClick={requestCode} disabled={cooldown > 0} className="w-full rounded-md bg-primary py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90 transition disabled:opacity-50">
-          {cooldown > 0 ? `ارسال مجدد در ${cooldown} ثانیه` : "ارسال کد تایید"}
-        </button>
-      ) : (
-        <>
-          <Input label="کد تایید ۶ رقمی" value={code} onChange={(e) => setCode(e.target.value)} inputMode="numeric" maxLength={6} required />
-          <SubmitBtn loading={loading}>ورود</SubmitBtn>
-          <button type="button" onClick={requestCode} disabled={cooldown > 0} className="w-full text-xs text-muted-foreground hover:text-[color:var(--gold)]">
-            {cooldown > 0 ? `ارسال مجدد کد در ${cooldown} ثانیه` : "ارسال مجدد کد"}
-          </button>
-        </>
-      )}
-    </form>
-  );
-}
-
 // -------------------- Signup --------------------
 function SignupForm({ nextPath }: { nextPath?: string }) {
   const navigate = useNavigate();
-  const doSignup = useServerFn(signUpWithPassword);
+  const doSignup = useServerFn(signUpWithEmail);
+  const [username, setUsername] = useState("");
+  const [email, setEmail] = useState("");
   const [mobile, setMobile] = useState("");
   const [password, setPassword] = useState("");
   const [confirm, setConfirm] = useState("");
@@ -251,13 +149,13 @@ function SignupForm({ nextPath }: { nextPath?: string }) {
 
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    const norm = normalizeIranianMobile(mobile);
-    if (!norm) return toast.error("شماره موبایل معتبر نیست.");
-    if (password !== confirm) return toast.error("رمز عبور و تکرار آن یکسان نیست.");
+    if (username.trim().length < 2) return toast.error("نام کاربری حداقل ۲ کاراکتر باشد.");
+    if (!/^\S+@\S+\.\S+$/.test(email)) return toast.error("ایمیل معتبر نیست.");
+    if (password !== confirm) return toast.error("رمز و تکرار آن یکسان نیست.");
     if (password.length < 8) return toast.error("رمز باید حداقل ۸ کاراکتر باشد.");
     setLoading(true);
     try {
-      const res = await doSignup({ data: { mobile: norm, password } });
+      const res = await doSignup({ data: { username: username.trim(), email: email.trim().toLowerCase(), password, mobile } });
       const { error } = await supabase.auth.signInWithPassword({ email: res.email, password });
       if (error) throw error;
       toast.success("ثبت‌نام با موفقیت انجام شد.");
@@ -268,84 +166,54 @@ function SignupForm({ nextPath }: { nextPath?: string }) {
       setLoading(false);
     }
   }
+
   return (
     <form onSubmit={submit} className="space-y-4">
-      <Input
-        label="شماره موبایل"
-        placeholder="۰۹۱۲۳۴۵۶۷۸۹"
-        value={mobile}
-        onChange={(e) => setMobile(e.target.value)}
-        inputMode="tel"
-        autoComplete="tel"
-        required
-      />
-      <Input
-        label="رمز عبور (حداقل ۸ کاراکتر)"
-        type="password"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        minLength={8}
-        required
-        autoComplete="new-password"
-      />
-      <Input
-        label="تکرار رمز عبور"
-        type="password"
-        value={confirm}
-        onChange={(e) => setConfirm(e.target.value)}
-        minLength={8}
-        required
-        autoComplete="new-password"
-      />
+      <Input label="نام کاربری" placeholder="نام و نام خانوادگی" value={username} onChange={(e) => setUsername(e.target.value)} autoComplete="name" required />
+      <Input label="ایمیل (Gmail)" type="email" placeholder="you@gmail.com" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
+      <Input label="شماره تماس" placeholder="۰۹۱۲۳۴۵۶۷۸۹" value={mobile} onChange={(e) => setMobile(e.target.value)} inputMode="tel" autoComplete="tel" required />
+      <Input label="رمز عبور (حداقل ۸ کاراکتر)" type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} required autoComplete="new-password" />
+      <Input label="تکرار رمز عبور" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} minLength={8} required autoComplete="new-password" />
       <SubmitBtn loading={loading}>ثبت‌نام</SubmitBtn>
     </form>
   );
 }
 
-// -------------------- Reset password --------------------
+// -------------------- Reset via email --------------------
 function ResetForm({ onDone }: { onDone: () => void }) {
-  const { send, cooldown } = useOtpRequest();
-  const doReset = useServerFn(resetPasswordWithOtp);
-  const [mobile, setMobile] = useState("");
-  const [normalized, setNormalized] = useState("");
-  const [code, setCode] = useState("");
-  const [password, setPassword] = useState("");
-  const [confirm, setConfirm] = useState("");
-  const [sent, setSent] = useState(false);
+  const [email, setEmail] = useState("");
   const [loading, setLoading] = useState(false);
-  async function requestCode() {
-    const m = await send(mobile, "reset");
-    if (m) { setNormalized(m); setSent(true); }
-  }
+  const [sent, setSent] = useState(false);
+
   async function submit(e: React.FormEvent) {
     e.preventDefault();
-    if (password !== confirm) return toast.error("رمز عبور و تکرار آن یکسان نیست.");
+    if (!/^\S+@\S+\.\S+$/.test(email)) return toast.error("ایمیل معتبر نیست.");
     setLoading(true);
-    try {
-      await doReset({ data: { mobile: normalized, code, password } });
-      toast.success("رمز عبور با موفقیت تغییر کرد. اکنون وارد شوید.");
-      onDone();
-    } catch (e) {
-      toast.error((e as Error).message);
-    } finally {
-      setLoading(false);
-    }
+    const { error } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+    setLoading(false);
+    if (error) return toast.error("ارسال ایمیل بازیابی ناموفق بود.");
+    setSent(true);
+    toast.success("لینک بازیابی به ایمیل شما ارسال شد.");
   }
+
+  if (sent) {
+    return (
+      <div className="space-y-4 text-sm text-foreground/85">
+        <p>لینک بازیابی رمز عبور به ایمیل <span className="text-[color:var(--gold)]">{email}</span> ارسال شد.</p>
+        <p className="text-muted-foreground text-xs">اگر ایمیل را نمی‌بینید، پوشه اسپم را بررسی کنید.</p>
+        <button type="button" onClick={onDone} className="w-full rounded-md border border-border py-2.5 text-sm hover:bg-secondary transition">
+          بازگشت به ورود
+        </button>
+      </div>
+    );
+  }
+
   return (
     <form onSubmit={submit} className="space-y-4">
-      <Input label="شماره موبایل" placeholder="۰۹۱۲۳۴۵۶۷۸۹" value={mobile} onChange={(e) => setMobile(e.target.value)} inputMode="tel" required disabled={sent} />
-      {!sent ? (
-        <button type="button" onClick={requestCode} disabled={cooldown > 0} className="w-full rounded-md bg-primary py-2.5 text-sm font-medium text-primary-foreground hover:opacity-90 transition disabled:opacity-50">
-          {cooldown > 0 ? `ارسال مجدد در ${cooldown} ثانیه` : "ارسال کد تایید"}
-        </button>
-      ) : (
-        <>
-          <Input label="کد تایید ۶ رقمی" value={code} onChange={(e) => setCode(e.target.value)} inputMode="numeric" maxLength={6} required />
-          <Input label="رمز عبور جدید (حداقل ۸ کاراکتر)" type="password" value={password} onChange={(e) => setPassword(e.target.value)} minLength={8} required autoComplete="new-password" />
-          <Input label="تکرار رمز عبور" type="password" value={confirm} onChange={(e) => setConfirm(e.target.value)} minLength={8} required autoComplete="new-password" />
-          <SubmitBtn loading={loading}>ثبت رمز جدید</SubmitBtn>
-        </>
-      )}
+      <Input label="ایمیل حساب کاربری" type="email" placeholder="you@gmail.com" value={email} onChange={(e) => setEmail(e.target.value)} autoComplete="email" required />
+      <SubmitBtn loading={loading}>ارسال لینک بازیابی</SubmitBtn>
     </form>
   );
 }
