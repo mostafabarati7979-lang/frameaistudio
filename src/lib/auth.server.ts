@@ -3,8 +3,11 @@ import { createHash, randomInt } from "crypto";
 import { supabaseAdmin } from "@/integrations/supabase/client.server";
 
 export function hashOtp(code: string, mobile: string): string {
-  // Peppered hash (mobile-scoped) — safe against rainbow tables for 6-digit codes.
-  const pepper = process.env.OTP_PEPPER ?? "frameai-dev-pepper";
+  // Peppered hash (mobile-scoped). Pepper MUST be configured; never fall back to a hardcoded value.
+  const pepper = process.env.OTP_PEPPER;
+  if (!pepper || pepper.length < 16) {
+    throw new Error("Server misconfigured: OTP_PEPPER is not set.");
+  }
   return createHash("sha256").update(`${pepper}:${mobile}:${code}`).digest("hex");
 }
 
