@@ -239,14 +239,22 @@ export const approveQuote = createServerFn({ method: "POST" })
         .eq("id", quote.id);
       throw new Error("مهلت این پیش‌فاکتور به پایان رسیده است.");
     }
-    await context.supabase
+    const { data: updQ, error: updQErr } = await context.supabase
       .from("quotes")
       .update({ status: "approved", decided_at: new Date().toISOString() })
-      .eq("id", quote.id);
-    await context.supabase
+      .eq("id", quote.id)
+      .select("id");
+    if (updQErr || !updQ || updQ.length === 0) {
+      throw new Error("ثبت تأیید پیش‌فاکتور ناموفق بود.");
+    }
+    const { data: updO, error: updOErr } = await context.supabase
       .from("orders")
       .update({ status: "contract_pending" })
-      .eq("id", quote.order_id);
+      .eq("id", quote.order_id)
+      .select("id");
+    if (updOErr || !updO || updO.length === 0) {
+      throw new Error("به‌روزرسانی وضعیت سفارش ناموفق بود.");
+    }
     return { ok: true };
   });
 
@@ -272,19 +280,25 @@ export const rejectQuote = createServerFn({ method: "POST" })
       throw new Error("دسترسی مجاز نیست.");
     }
     if (quote.status !== "sent") throw new Error("این پیش‌فاکتور قابل رد کردن نیست.");
-    await context.supabase
+    const { data: updQ, error: updQErr } = await context.supabase
       .from("quotes")
       .update({
         status: "rejected",
         decided_at: new Date().toISOString(),
         customer_response_note: data.note ?? null,
       })
-      .eq("id", quote.id);
+      .eq("id", quote.id)
+      .select("id");
+    if (updQErr || !updQ || updQ.length === 0) {
+      throw new Error("ثبت رد پیش‌فاکتور ناموفق بود.");
+    }
     // Order goes back to submitted so admin can re-quote or close.
-    await context.supabase
+    const { error: updOErr } = await context.supabase
       .from("orders")
       .update({ status: "submitted" })
-      .eq("id", quote.order_id);
+      .eq("id", quote.order_id)
+      .select("id");
+    if (updOErr) throw new Error("به‌روزرسانی وضعیت سفارش ناموفق بود.");
     return { ok: true };
   });
 
@@ -312,14 +326,18 @@ export const requestQuoteRevision = createServerFn({ method: "POST" })
     if (quote.status !== "sent") {
       throw new Error("امکان درخواست بازنگری برای این پیش‌فاکتور وجود ندارد.");
     }
-    await context.supabase
+    const { data: updQ, error: updQErr } = await context.supabase
       .from("quotes")
       .update({
         status: "revision_requested",
         decided_at: new Date().toISOString(),
         customer_response_note: data.note,
       })
-      .eq("id", quote.id);
+      .eq("id", quote.id)
+      .select("id");
+    if (updQErr || !updQ || updQ.length === 0) {
+      throw new Error("ثبت درخواست بازنگری ناموفق بود.");
+    }
     // Order stays 'quoted' — admin will issue a new version.
     return { ok: true };
   });
