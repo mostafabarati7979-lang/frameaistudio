@@ -280,19 +280,25 @@ export const rejectQuote = createServerFn({ method: "POST" })
       throw new Error("دسترسی مجاز نیست.");
     }
     if (quote.status !== "sent") throw new Error("این پیش‌فاکتور قابل رد کردن نیست.");
-    await context.supabase
+    const { data: updQ, error: updQErr } = await context.supabase
       .from("quotes")
       .update({
         status: "rejected",
         decided_at: new Date().toISOString(),
         customer_response_note: data.note ?? null,
       })
-      .eq("id", quote.id);
+      .eq("id", quote.id)
+      .select("id");
+    if (updQErr || !updQ || updQ.length === 0) {
+      throw new Error("ثبت رد پیش‌فاکتور ناموفق بود.");
+    }
     // Order goes back to submitted so admin can re-quote or close.
-    await context.supabase
+    const { error: updOErr } = await context.supabase
       .from("orders")
       .update({ status: "submitted" })
-      .eq("id", quote.order_id);
+      .eq("id", quote.order_id)
+      .select("id");
+    if (updOErr) throw new Error("به‌روزرسانی وضعیت سفارش ناموفق بود.");
     return { ok: true };
   });
 
