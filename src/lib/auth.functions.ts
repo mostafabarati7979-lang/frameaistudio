@@ -202,6 +202,78 @@ export const signUpWithOtp = createServerFn({ method: "POST" })
     return { ok: true, email };
   });
 
+// ---------- Sign up with email + password + phone (no OTP) ----------
+export const signUpWithEmail = createServerFn({ method: "POST" })
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        username: z.string().trim().min(2).max(60),
+        email: z.string().trim().toLowerCase().email().max(255),
+        password: z.string().min(8).max(72),
+        mobile: z.string().min(1),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data }) => {
+    const mobile = normalizeIranianMobile(data.mobile);
+    if (!mobile) throw new Error("شماره تماس معتبر نیست.");
+
+    const { checkRateLimit } = await import("./auth.server");
+    const { supabaseAdmin } = await import(
+      "@/integrations/supabase/client.server"
+    );
+
+    const ip = getIp();
+    const rl = await checkRateLimit({
+      bucket: "signup:ip",
+      key: ip,
+      limit: 10,
+      windowSeconds: 3600,
+    });
+    if (!rl.ok) {
+      throw new Error("تعداد درخواست‌های ثبت‌نام از این آدرس زیاد است. بعداً تلاش کنید.");
+    }
+
+    const { data: existingMobile } = await supabaseAdmin
+      .from("profiles")
+      .select("id")
+      .eq("mobile", mobile)
+      .maybeSingle();
+    if (existingMobile) {
+      throw new Error("این شماره تماس قبلاً ثبت‌نام کرده است.");
+    }
+
+    const { data: created, error } = await supabaseAdmin.auth.admin.createUser({
+      email: data.email,
+      password: data.password,
+      email_confirm: true,
+      user_metadata: { full_name: data.username, mobile },
+    });
+    if (error || !created.user) {
+      const msg = error?.message?.toLowerCase() ?? "";
+      if (msg.includes("already") || msg.includes("registered") || msg.includes("exists")) {
+        throw new Error("این ایمیل قبلاً ثبت‌نام کرده است.");
+      }
+      throw new Error("ثبت‌نام ناموفق بود. بعداً تلاش کنید.");
+    }
+
+    const userId = created.user.id;
+    const { error: pErr } = await supabaseAdmin.from("profiles").insert({
+      id: userId,
+      mobile,
+      full_name: data.username,
+    });
+    if (pErr) {
+      await supabaseAdmin.auth.admin.deleteUser(userId);
+      throw new Error("ثبت‌نام ناموفق بود.");
+    }
+    await supabaseAdmin
+      .from("user_roles")
+      .insert({ user_id: userId, role: "customer" });
+
+    return { ok: true, email: data.email };
+  });
+
 // ---------- Sign up with mobile + password (no OTP) ----------
 export const signUpWithPassword = createServerFn({ method: "POST" })
   .inputValidator((data: unknown) =>
