@@ -128,6 +128,38 @@ export function PaymentsPanel({ orderId }: { orderId: string }) {
               }
             />
           </div>
+
+          {(g.paymentAmountToman || g.paymentBankInfo || g.paymentLink || g.paymentInstructionsNote) && (
+            <div className="mt-4 rounded-lg border border-primary/30 bg-primary/5 p-4 space-y-2">
+              <p className="text-sm font-semibold text-primary">اطلاعات پرداخت از سوی مدیر</p>
+              {g.paymentAmountToman != null && (
+                <p className="text-sm">
+                  مبلغ قابل پرداخت: <span className="font-semibold">{fmtToman(g.paymentAmountToman)}</span>
+                </p>
+              )}
+              {g.paymentBankInfo && (
+                <div className="text-sm">
+                  <p className="text-xs text-muted-foreground">اطلاعات حساب / کارت / شبا</p>
+                  <p className="whitespace-pre-wrap font-mono text-sm">{g.paymentBankInfo}</p>
+                </div>
+              )}
+              {g.paymentLink && (
+                <a
+                  href={g.paymentLink}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="inline-block rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90"
+                >
+                  پرداخت آنلاین
+                </a>
+              )}
+              {g.paymentInstructionsNote && (
+                <p className="text-xs text-muted-foreground whitespace-pre-wrap">
+                  {g.paymentInstructionsNote}
+                </p>
+              )}
+            </div>
+          )}
         </div>
       )}
 

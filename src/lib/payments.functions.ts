@@ -255,7 +255,7 @@ export const paymentGate = createServerFn({ method: "POST" })
   .handler(async ({ data, context }) => {
     const { data: order } = await context.supabase
       .from("orders")
-      .select("id, customer_id, status")
+      .select("id, customer_id, status, payment_amount_toman, payment_bank_info, payment_link, payment_instructions_note")
       .eq("id", data.order_id)
       .maybeSingle();
     if (!order) return { canPay: false, reason: "not_found" as const };
@@ -305,5 +305,69 @@ export const paymentGate = createServerFn({ method: "POST" })
       finalApproved,
       totalToman: quote?.total_toman ?? null,
       depositToman: quote?.deposit_toman ?? null,
+      paymentAmountToman: (order as any).payment_amount_toman ?? null,
+      paymentBankInfo: (order as any).payment_bank_info ?? null,
+      paymentLink: (order as any).payment_link ?? null,
+      paymentInstructionsNote: (order as any).payment_instructions_note ?? null,
     };
+  });
+
+// ---------- Admin: set payment instructions (amount, bank info, link) ----------
+export const adminSetPaymentInstructions = createServerFn({ method: "POST" })
+  .middleware([requireSupabaseAuth])
+  .inputValidator((data: unknown) =>
+    z
+      .object({
+        order_id: z.string().uuid(),
+        payment_amount_toman: z.number().int().min(0).max(999_999_999_999).nullable().optional(),
+        payment_bank_info: z.string().trim().max(2000).nullable().optional(),
+        payment_link: z.string().trim().url().max(1000).nullable().optional().or(z.literal("").transform(() => null)),
+        payment_instructions_note: z.string().trim().max(2000).nullable().optional(),
+      })
+      .parse(data),
+  )
+  .handler(async ({ data, context }) => {
+    await assertAdmin(context);
+    const { data: order } = await context.supabase
+      .from("orders")
+      .select("id, status")
+      .eq("id", data.order_id)
+      .maybeSingle();
+    if (!order) throw new Error("سفارش یافت نشد.");
+    const { data: contract } = await context.supabase
+      .from("contracts")
+      .select("id")
+      .eq("order_id", data.order_id)
+      .eq("status", "approved")
+      .maybeSingle();
+    if (!contract) throw new Error("قرارداد باید ابتدا تأیید شود.");
+
+    const { error } = await context.supabase
+      .from("orders")
+      .update({
+        payment_amount_toman: data.payment_amount_toman ?? null,
+        payment_bank_info: data.payment_bank_info ?? null,
+        payment_link: data.payment_link ?? null,
+        payment_instructions_note: data.payment_instructions_note ?? null,
+      })
+      .eq("id", data.order_id);
+    if (error) throw new Error("ذخیره اطلاعات پرداخت ناموفق بود.");
+
+    // Notify customer
+    const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+    const { data: o } = await supabaseAdmin
+      .from("orders")
+      .select("customer_id")
+      .eq("id", data.order_id)
+      .maybeSingle();
+    if (o?.customer_id) {
+      await supabaseAdmin.from("notifications").insert({
+        user_id: o.customer_id,
+        type: "payment",
+        title: "اطلاعات پرداخت ارسال شد",
+        message: "اطلاعات پرداخت توسط مدیر برای شما ثبت شد.",
+        link: `/orders/${data.order_id}`,
+      });
+    }
+    return { ok: true };
   });

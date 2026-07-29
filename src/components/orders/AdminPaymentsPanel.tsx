@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -6,6 +6,8 @@ import {
   listOrderPayments,
   adminApprovePayment,
   adminRejectPayment,
+  adminSetPaymentInstructions,
+  paymentGate,
 } from "@/lib/payments.functions";
 import { fmtToman } from "@/components/orders/QuotesPanel";
 
@@ -24,16 +26,59 @@ export function AdminPaymentsPanel({ orderId }: { orderId: string }) {
   const list = useServerFn(listOrderPayments);
   const approve = useServerFn(adminApprovePayment);
   const reject = useServerFn(adminRejectPayment);
+  const setInstr = useServerFn(adminSetPaymentInstructions);
+  const gate = useServerFn(paymentGate);
   const qc = useQueryClient();
 
   const { data } = useQuery({
     queryKey: ["admin-payments", orderId],
     queryFn: () => list({ data: { order_id: orderId } }),
   });
+  const gateQ = useQuery({
+    queryKey: ["admin-payment-gate", orderId],
+    queryFn: () => gate({ data: { order_id: orderId } }),
+  });
+  const g = gateQ.data as any;
 
   const [notesById, setNotesById] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
+  const [payAmount, setPayAmount] = useState<number>(0);
+  const [payBank, setPayBank] = useState("");
+  const [payLink, setPayLink] = useState("");
+  const [payNote, setPayNote] = useState("");
+  const [savingInstr, setSavingInstr] = useState(false);
+
+  useEffect(() => {
+    if (!g) return;
+    setPayAmount(g.paymentAmountToman ?? 0);
+    setPayBank(g.paymentBankInfo ?? "");
+    setPayLink(g.paymentLink ?? "");
+    setPayNote(g.paymentInstructionsNote ?? "");
+  }, [g?.paymentAmountToman, g?.paymentBankInfo, g?.paymentLink, g?.paymentInstructionsNote]);
+
   const rows = (data as any[]) ?? [];
+
+  async function onSaveInstructions() {
+    setSavingInstr(true);
+    try {
+      await setInstr({
+        data: {
+          order_id: orderId,
+          payment_amount_toman: payAmount > 0 ? Math.trunc(payAmount) : null,
+          payment_bank_info: payBank.trim() || null,
+          payment_link: payLink.trim() || null,
+          payment_instructions_note: payNote.trim() || null,
+        },
+      });
+      toast.success("اطلاعات پرداخت ذخیره شد و برای مشتری ارسال گردید.");
+      qc.invalidateQueries({ queryKey: ["admin-payment-gate", orderId] });
+      qc.invalidateQueries({ queryKey: ["payment-gate", orderId] });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setSavingInstr(false);
+    }
+  }
 
   async function onApprove(id: string) {
     setBusy(id);
@@ -67,8 +112,68 @@ export function AdminPaymentsPanel({ orderId }: { orderId: string }) {
   return (
     <div className="mt-8">
       <h2 className="text-lg font-semibold">پرداخت‌ها</h2>
+
+      {g?.contractApproved && (
+        <div className="mt-3 rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3">
+          <p className="text-sm font-semibold text-primary">
+            اطلاعات پرداخت برای مشتری
+          </p>
+          <p className="text-xs text-muted-foreground">
+            مبلغ، اطلاعات حساب/شبا و لینک پرداخت را وارد کنید. مشتری این اطلاعات را در صفحه سفارش می‌بیند.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs text-muted-foreground">مبلغ قابل پرداخت (تومان)</label>
+              <input
+                type="number"
+                min={0}
+                className="input mt-1"
+                value={payAmount || ""}
+                onChange={(e) => setPayAmount(Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">لینک پرداخت (اختیاری)</label>
+              <input
+                type="url"
+                placeholder="https://…"
+                className="input mt-1"
+                value={payLink}
+                onChange={(e) => setPayLink(e.target.value)}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground">اطلاعات حساب / شماره کارت / شبا</label>
+            <textarea
+              rows={3}
+              className="input mt-1 font-mono"
+              value={payBank}
+              onChange={(e) => setPayBank(e.target.value)}
+              placeholder="بانک: … \nشماره کارت: … \nشماره شبا: IR…"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground">یادداشت (اختیاری)</label>
+            <textarea
+              rows={2}
+              className="input mt-1"
+              value={payNote}
+              onChange={(e) => setPayNote(e.target.value)}
+            />
+          </div>
+          <button
+            disabled={savingInstr}
+            onClick={onSaveInstructions}
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+          >
+            ذخیره و ارسال به مشتری
+          </button>
+        </div>
+      )}
+
       {rows.length === 0 && (
-        <p className="text-sm text-muted-foreground mt-2">هنوز رسیدی ثبت نشده است.</p>
+        <p className="text-sm text-muted-foreground mt-4">هنوز رسیدی ثبت نشده است.</p>
       )}
       <div className="mt-2 space-y-3">
         {rows.map((p) => (
