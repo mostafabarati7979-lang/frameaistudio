@@ -74,8 +74,7 @@ export function ContractsPanel({ orderId }: { orderId: string }) {
           <div key={c.id} className="rounded-xl border border-border/70 bg-card/50 p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm">
-                نسخه <span className="font-mono">v{c.version}</span> —{" "}
-                <span className="text-primary">{STATUS_LABELS[c.status] ?? c.status}</span>
+                نسخه <span className="font-mono">v{c.version}</span>
               </p>
               <p className="text-sm font-semibold">{c.title}</p>
             </div>
