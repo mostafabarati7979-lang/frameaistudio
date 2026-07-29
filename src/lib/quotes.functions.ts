@@ -14,6 +14,26 @@ async function assertAdmin(context: { supabase: any; userId: string }) {
   if (error || !data) throw new Error("دسترسی مجاز نیست.");
 }
 
+async function notifyAdmins(params: {
+  title: string;
+  message: string;
+  orderId: string;
+}) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: admins } = await supabaseAdmin
+    .from("user_roles")
+    .select("user_id")
+    .eq("role", "admin");
+  const rows = (admins ?? []).map((a: any) => ({
+    user_id: a.user_id,
+    type: "quote",
+    title: params.title,
+    message: params.message,
+    link: `/admin/orders/${params.orderId}`,
+  }));
+  if (rows.length) await supabaseAdmin.from("notifications").insert(rows);
+}
+
 const tomanInt = z
   .number()
   .int("مبلغ باید عدد صحیح باشد.")
@@ -255,6 +275,11 @@ export const approveQuote = createServerFn({ method: "POST" })
     if (updOErr || !updO || updO.length === 0) {
       throw new Error("به‌روزرسانی وضعیت سفارش ناموفق بود.");
     }
+    await notifyAdmins({
+      title: "پیش‌فاکتور تأیید شد",
+      message: "مشتری پیش‌فاکتور را تأیید کرد.",
+      orderId: quote.order_id,
+    });
     return { ok: true };
   });
 
@@ -299,6 +324,11 @@ export const rejectQuote = createServerFn({ method: "POST" })
       .eq("id", quote.order_id)
       .select("id");
     if (updOErr) throw new Error("به‌روزرسانی وضعیت سفارش ناموفق بود.");
+    await notifyAdmins({
+      title: "پیش‌فاکتور رد شد",
+      message: data.note ? `دلیل: ${data.note}` : "مشتری پیش‌فاکتور را رد کرد.",
+      orderId: quote.order_id,
+    });
     return { ok: true };
   });
 
@@ -339,5 +369,10 @@ export const requestQuoteRevision = createServerFn({ method: "POST" })
       throw new Error("ثبت درخواست بازنگری ناموفق بود.");
     }
     // Order stays 'quoted' — admin will issue a new version.
+    await notifyAdmins({
+      title: "درخواست بازنگری پیش‌فاکتور",
+      message: `دلیل: ${data.note}`,
+      orderId: quote.order_id,
+    });
     return { ok: true };
   });
