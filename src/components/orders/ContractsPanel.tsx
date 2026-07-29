@@ -74,8 +74,7 @@ export function ContractsPanel({ orderId }: { orderId: string }) {
           <div key={c.id} className="rounded-xl border border-border/70 bg-card/50 p-4">
             <div className="flex items-center justify-between gap-3">
               <p className="text-sm">
-                نسخه <span className="font-mono">v{c.version}</span> —{" "}
-                <span className="text-primary">{STATUS_LABELS[c.status] ?? c.status}</span>
+                نسخه <span className="font-mono">v{c.version}</span>
               </p>
               <p className="text-sm font-semibold">{c.title}</p>
             </div>
@@ -87,53 +86,59 @@ export function ContractsPanel({ orderId }: { orderId: string }) {
                 یادداشت شما: {c.customer_response_note}
               </p>
             )}
-            {c.status === "sent" && (
-              <div className="mt-3 flex flex-wrap gap-2 items-start">
-                <button
-                  disabled={busy}
-                  onClick={() => onApprove(c.id)}
-                  className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
-                >
-                  تأیید قرارداد
-                </button>
-                {rejectingId === c.id ? (
-                  <div className="flex-1 min-w-[220px]">
-                    <textarea
-                      rows={2}
-                      className="input"
-                      value={note}
-                      onChange={(e) => setNote(e.target.value)}
-                      placeholder="دلیل رد را بنویسید…"
-                    />
-                    <div className="mt-2 flex gap-2">
-                      <button
-                        disabled={busy}
-                        onClick={() => onReject(c.id)}
-                        className="rounded-md border border-destructive/50 px-3 py-1 text-xs text-destructive hover:bg-destructive/10"
-                      >
-                        ثبت رد
-                      </button>
-                      <button
-                        onClick={() => {
-                          setRejectingId(null);
-                          setNote("");
-                        }}
-                        className="rounded-md border border-border px-3 py-1 text-xs"
-                      >
-                        انصراف
-                      </button>
-                    </div>
-                  </div>
-                ) : (
+            <div className="mt-3">
+              <p className="text-sm font-medium">
+                وضعیت قرارداد:{" "}
+                <span className="text-primary">{STATUS_LABELS[c.status] ?? c.status}</span>
+              </p>
+              {c.status === "sent" && (
+                <div className="mt-2 flex flex-wrap gap-2 items-start">
                   <button
-                    onClick={() => setRejectingId(c.id)}
-                    className="rounded-md border border-destructive/50 px-3 py-1 text-sm text-destructive hover:bg-destructive/10"
+                    disabled={busy}
+                    onClick={() => onApprove(c.id)}
+                    className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
                   >
-                    رد قرارداد
+                    تأیید قرارداد
                   </button>
-                )}
-              </div>
-            )}
+                  {rejectingId === c.id ? (
+                    <div className="flex-1 min-w-[220px]">
+                      <textarea
+                        rows={2}
+                        className="input"
+                        value={note}
+                        onChange={(e) => setNote(e.target.value)}
+                        placeholder="دلیل رد را بنویسید…"
+                      />
+                      <div className="mt-2 flex gap-2">
+                        <button
+                          disabled={busy}
+                          onClick={() => onReject(c.id)}
+                          className="rounded-md border border-destructive/50 px-3 py-1 text-xs text-destructive hover:bg-destructive/10"
+                        >
+                          ثبت رد
+                        </button>
+                        <button
+                          onClick={() => {
+                            setRejectingId(null);
+                            setNote("");
+                          }}
+                          className="rounded-md border border-border px-3 py-1 text-xs"
+                        >
+                          انصراف
+                        </button>
+                      </div>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setRejectingId(c.id)}
+                      className="rounded-md border border-destructive/50 px-3 py-1 text-sm text-destructive hover:bg-destructive/10"
+                    >
+                      رد قرارداد
+                    </button>
+                  )}
+                </div>
+              )}
+            </div>
           </div>
         ))}
       </div>
