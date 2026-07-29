@@ -369,5 +369,10 @@ export const requestQuoteRevision = createServerFn({ method: "POST" })
       throw new Error("ثبت درخواست بازنگری ناموفق بود.");
     }
     // Order stays 'quoted' — admin will issue a new version.
+    await notifyAdmins({
+      title: "درخواست بازنگری پیش‌فاکتور",
+      message: `دلیل: ${data.note}`,
+      orderId: quote.order_id,
+    });
     return { ok: true };
   });
