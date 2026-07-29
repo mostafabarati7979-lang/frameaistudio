@@ -227,5 +227,10 @@ export const rejectContract = createServerFn({ method: "POST" })
       .from("orders")
       .update({ status: "quoted" })
       .eq("id", row.order_id);
+    await notifyAdmins({
+      title: "قرارداد رد شد",
+      message: `دلیل: ${data.note}`,
+      orderId: row.order_id,
+    });
     return { ok: true };
   });
