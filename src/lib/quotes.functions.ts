@@ -275,6 +275,11 @@ export const approveQuote = createServerFn({ method: "POST" })
     if (updOErr || !updO || updO.length === 0) {
       throw new Error("به‌روزرسانی وضعیت سفارش ناموفق بود.");
     }
+    await notifyAdmins({
+      title: "پیش‌فاکتور تأیید شد",
+      message: "مشتری پیش‌فاکتور را تأیید کرد.",
+      orderId: quote.order_id,
+    });
     return { ok: true };
   });
 
