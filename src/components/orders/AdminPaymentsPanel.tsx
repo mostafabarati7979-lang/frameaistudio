@@ -112,8 +112,68 @@ export function AdminPaymentsPanel({ orderId }: { orderId: string }) {
   return (
     <div className="mt-8">
       <h2 className="text-lg font-semibold">پرداخت‌ها</h2>
+
+      {g?.contractApproved && (
+        <div className="mt-3 rounded-xl border border-primary/30 bg-primary/5 p-4 space-y-3">
+          <p className="text-sm font-semibold text-primary">
+            اطلاعات پرداخت برای مشتری
+          </p>
+          <p className="text-xs text-muted-foreground">
+            مبلغ، اطلاعات حساب/شبا و لینک پرداخت را وارد کنید. مشتری این اطلاعات را در صفحه سفارش می‌بیند.
+          </p>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-2">
+            <div>
+              <label className="text-xs text-muted-foreground">مبلغ قابل پرداخت (تومان)</label>
+              <input
+                type="number"
+                min={0}
+                className="input mt-1"
+                value={payAmount || ""}
+                onChange={(e) => setPayAmount(Number(e.target.value))}
+              />
+            </div>
+            <div>
+              <label className="text-xs text-muted-foreground">لینک پرداخت (اختیاری)</label>
+              <input
+                type="url"
+                placeholder="https://…"
+                className="input mt-1"
+                value={payLink}
+                onChange={(e) => setPayLink(e.target.value)}
+              />
+            </div>
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground">اطلاعات حساب / شماره کارت / شبا</label>
+            <textarea
+              rows={3}
+              className="input mt-1 font-mono"
+              value={payBank}
+              onChange={(e) => setPayBank(e.target.value)}
+              placeholder="بانک: … \nشماره کارت: … \nشماره شبا: IR…"
+            />
+          </div>
+          <div>
+            <label className="text-xs text-muted-foreground">یادداشت (اختیاری)</label>
+            <textarea
+              rows={2}
+              className="input mt-1"
+              value={payNote}
+              onChange={(e) => setPayNote(e.target.value)}
+            />
+          </div>
+          <button
+            disabled={savingInstr}
+            onClick={onSaveInstructions}
+            className="rounded-md bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
+          >
+            ذخیره و ارسال به مشتری
+          </button>
+        </div>
+      )}
+
       {rows.length === 0 && (
-        <p className="text-sm text-muted-foreground mt-2">هنوز رسیدی ثبت نشده است.</p>
+        <p className="text-sm text-muted-foreground mt-4">هنوز رسیدی ثبت نشده است.</p>
       )}
       <div className="mt-2 space-y-3">
         {rows.map((p) => (
