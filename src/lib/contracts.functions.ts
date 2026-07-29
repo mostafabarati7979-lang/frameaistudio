@@ -176,14 +176,16 @@ export const approveContract = createServerFn({ method: "POST" })
       throw new Error("دسترسی مجاز نیست.");
     }
     if (row.status !== "sent") throw new Error("این قرارداد قابل تأیید نیست.");
-    await context.supabase
+    const { error: cErr } = await context.supabase
       .from("contracts")
       .update({ status: "approved", decided_at: new Date().toISOString() })
       .eq("id", row.id);
-    await context.supabase
+    if (cErr) throw new Error("تأیید قرارداد ناموفق بود.");
+    const { error: oErr } = await context.supabase
       .from("orders")
       .update({ status: "contract_approved" })
       .eq("id", row.order_id);
+    if (oErr) throw new Error("به‌روزرسانی وضعیت سفارش ناموفق بود.");
     await notifyAdmins({
       title: "قرارداد تأیید شد",
       message: "مشتری قرارداد را تأیید کرد.",
@@ -214,7 +216,7 @@ export const rejectContract = createServerFn({ method: "POST" })
       throw new Error("دسترسی مجاز نیست.");
     }
     if (row.status !== "sent") throw new Error("این قرارداد قابل رد کردن نیست.");
-    await context.supabase
+    const { error: cErr } = await context.supabase
       .from("contracts")
       .update({
         status: "rejected",
@@ -222,11 +224,13 @@ export const rejectContract = createServerFn({ method: "POST" })
         customer_response_note: data.note,
       })
       .eq("id", row.id);
+    if (cErr) throw new Error("رد قرارداد ناموفق بود.");
     // Return to quoted state — admin may revise and reissue.
-    await context.supabase
+    const { error: oErr } = await context.supabase
       .from("orders")
       .update({ status: "quoted" })
       .eq("id", row.order_id);
+    if (oErr) throw new Error("به‌روزرسانی وضعیت سفارش ناموفق بود.");
     await notifyAdmins({
       title: "قرارداد رد شد",
       message: `دلیل: ${data.note}`,
