@@ -184,6 +184,11 @@ export const approveContract = createServerFn({ method: "POST" })
       .from("orders")
       .update({ status: "contract_approved" })
       .eq("id", row.order_id);
+    await notifyAdmins({
+      title: "قرارداد تأیید شد",
+      message: "مشتری قرارداد را تأیید کرد.",
+      orderId: row.order_id,
+    });
     return { ok: true };
   });
 
