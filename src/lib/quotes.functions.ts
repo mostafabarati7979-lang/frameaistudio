@@ -324,6 +324,11 @@ export const rejectQuote = createServerFn({ method: "POST" })
       .eq("id", quote.order_id)
       .select("id");
     if (updOErr) throw new Error("به‌روزرسانی وضعیت سفارش ناموفق بود.");
+    await notifyAdmins({
+      title: "پیش‌فاکتور رد شد",
+      message: data.note ? `دلیل: ${data.note}` : "مشتری پیش‌فاکتور را رد کرد.",
+      orderId: quote.order_id,
+    });
     return { ok: true };
   });
 
