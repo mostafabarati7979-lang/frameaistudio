@@ -330,6 +330,10 @@ export type Database = {
           order_code: string
           orientation: string | null
           package_key: string | null
+          payment_amount_toman: number | null
+          payment_bank_info: string | null
+          payment_instructions_note: string | null
+          payment_link: string | null
           preferred_contact: string | null
           project_title: string
           quality: string | null
@@ -372,6 +376,10 @@ export type Database = {
           order_code: string
           orientation?: string | null
           package_key?: string | null
+          payment_amount_toman?: number | null
+          payment_bank_info?: string | null
+          payment_instructions_note?: string | null
+          payment_link?: string | null
           preferred_contact?: string | null
           project_title: string
           quality?: string | null
@@ -414,6 +422,10 @@ export type Database = {
           order_code?: string
           orientation?: string | null
           package_key?: string | null
+          payment_amount_toman?: number | null
+          payment_bank_info?: string | null
+          payment_instructions_note?: string | null
+          payment_link?: string | null
           preferred_contact?: string | null
           project_title?: string
           quality?: string | null
