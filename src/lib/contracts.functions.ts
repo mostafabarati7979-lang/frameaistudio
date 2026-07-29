@@ -13,6 +13,26 @@ async function assertAdmin(context: { supabase: any; userId: string }) {
   if (error || !data) throw new Error("دسترسی مجاز نیست.");
 }
 
+async function notifyAdmins(params: {
+  title: string;
+  message: string;
+  orderId: string;
+}) {
+  const { supabaseAdmin } = await import("@/integrations/supabase/client.server");
+  const { data: admins } = await supabaseAdmin
+    .from("user_roles")
+    .select("user_id")
+    .eq("role", "admin");
+  const rows = (admins ?? []).map((a: any) => ({
+    user_id: a.user_id,
+    type: "contract",
+    title: params.title,
+    message: params.message,
+    link: `/admin/orders/${params.orderId}`,
+  }));
+  if (rows.length) await supabaseAdmin.from("notifications").insert(rows);
+}
+
 const createContractSchema = z.object({
   order_id: z.string().uuid(),
   quote_id: z.string().uuid().nullable().optional(),
