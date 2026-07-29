@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useServerFn } from "@tanstack/react-start";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "sonner";
@@ -6,6 +6,8 @@ import {
   listOrderPayments,
   adminApprovePayment,
   adminRejectPayment,
+  adminSetPaymentInstructions,
+  paymentGate,
 } from "@/lib/payments.functions";
 import { fmtToman } from "@/components/orders/QuotesPanel";
 
@@ -24,16 +26,59 @@ export function AdminPaymentsPanel({ orderId }: { orderId: string }) {
   const list = useServerFn(listOrderPayments);
   const approve = useServerFn(adminApprovePayment);
   const reject = useServerFn(adminRejectPayment);
+  const setInstr = useServerFn(adminSetPaymentInstructions);
+  const gate = useServerFn(paymentGate);
   const qc = useQueryClient();
 
   const { data } = useQuery({
     queryKey: ["admin-payments", orderId],
     queryFn: () => list({ data: { order_id: orderId } }),
   });
+  const gateQ = useQuery({
+    queryKey: ["admin-payment-gate", orderId],
+    queryFn: () => gate({ data: { order_id: orderId } }),
+  });
+  const g = gateQ.data as any;
 
   const [notesById, setNotesById] = useState<Record<string, string>>({});
   const [busy, setBusy] = useState<string | null>(null);
+  const [payAmount, setPayAmount] = useState<number>(0);
+  const [payBank, setPayBank] = useState("");
+  const [payLink, setPayLink] = useState("");
+  const [payNote, setPayNote] = useState("");
+  const [savingInstr, setSavingInstr] = useState(false);
+
+  useEffect(() => {
+    if (!g) return;
+    setPayAmount(g.paymentAmountToman ?? 0);
+    setPayBank(g.paymentBankInfo ?? "");
+    setPayLink(g.paymentLink ?? "");
+    setPayNote(g.paymentInstructionsNote ?? "");
+  }, [g?.paymentAmountToman, g?.paymentBankInfo, g?.paymentLink, g?.paymentInstructionsNote]);
+
   const rows = (data as any[]) ?? [];
+
+  async function onSaveInstructions() {
+    setSavingInstr(true);
+    try {
+      await setInstr({
+        data: {
+          order_id: orderId,
+          payment_amount_toman: payAmount > 0 ? Math.trunc(payAmount) : null,
+          payment_bank_info: payBank.trim() || null,
+          payment_link: payLink.trim() || null,
+          payment_instructions_note: payNote.trim() || null,
+        },
+      });
+      toast.success("اطلاعات پرداخت ذخیره شد و برای مشتری ارسال گردید.");
+      qc.invalidateQueries({ queryKey: ["admin-payment-gate", orderId] });
+      qc.invalidateQueries({ queryKey: ["payment-gate", orderId] });
+    } catch (e) {
+      toast.error((e as Error).message);
+    } finally {
+      setSavingInstr(false);
+    }
+  }
 
   async function onApprove(id: string) {
     setBusy(id);
