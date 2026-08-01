@@ -65,24 +65,35 @@ export const ALLOWED_MIME: Record<string, (typeof FILE_KINDS)[number]> = {
 export const MAX_FILE_BYTES = 200 * 1024 * 1024; // 200 MB
 export const MAX_FILES_PER_ORDER = 20;
 
+// Empty strings / NaN coming from optional inputs should be treated as "not provided".
+const emptyToNull = <T extends z.ZodTypeAny>(schema: T) =>
+  z.preprocess((v) => {
+    if (v === "" || v === undefined || (typeof v === "number" && Number.isNaN(v))) return null;
+    return v;
+  }, schema.nullable());
+
 export const orderDraftSchema = z.object({
-  service_type: z.enum(SERVICE_TYPES.map((s) => s.value) as [string, ...string[]]),
-  package_key: z.string().max(64).nullable().optional(),
+  service_type: z.enum(SERVICE_TYPES.map((s) => s.value) as [string, ...string[]], {
+    message: "نوع خدمت را انتخاب کنید.",
+  }),
+  package_key: emptyToNull(z.string().max(64)).optional(),
 
-  project_title: z.string().trim().min(2).max(120),
-  event_date: z.string().regex(/^\d{4}-\d{2}-\d{2}$/).nullable().optional(),
-  city: z.string().trim().max(80).nullable().optional(),
-  address: z.string().trim().max(300).nullable().optional(),
-  team_hours: z.number().int().min(1).max(48).nullable().optional(),
-  shooting_days: z.number().int().min(1).max(30).nullable().optional(),
-  description: z.string().trim().max(2000).nullable().optional(),
+  project_title: z.string().trim().min(2, "عنوان پروژه را وارد کنید.").max(120),
+  event_date: emptyToNull(
+    z.string().regex(/^\d{4}-\d{2}-\d{2}$/, "تاریخ رویداد معتبر نیست."),
+  ).optional(),
+  city: emptyToNull(z.string().trim().max(80)).optional(),
+  address: emptyToNull(z.string().trim().max(300)).optional(),
+  team_hours: emptyToNull(z.number().int().min(1).max(48)).optional(),
+  shooting_days: emptyToNull(z.number().int().min(1).max(30)).optional(),
+  description: emptyToNull(z.string().trim().max(2000)).optional(),
 
-  cameras_count: z.number().int().min(1).max(20).nullable().optional(),
-  quality: z.enum(["fhd", "4k"]).nullable().optional(),
-  orientation: z.enum(["horizontal", "vertical", "both"]).nullable().optional(),
-  duration_min: z.number().int().min(1).max(600).nullable().optional(),
-  clips_count: z.number().int().min(0).max(100).nullable().optional(),
-  reels_count: z.number().int().min(0).max(100).nullable().optional(),
+  cameras_count: emptyToNull(z.number().int().min(1).max(20)).optional(),
+  quality: emptyToNull(z.enum(["fhd", "4k"])).optional(),
+  orientation: emptyToNull(z.enum(["horizontal", "vertical", "both"])).optional(),
+  duration_min: emptyToNull(z.number().int().min(1).max(600)).optional(),
+  clips_count: emptyToNull(z.number().int().min(0).max(100)).optional(),
+  reels_count: emptyToNull(z.number().int().min(0).max(100)).optional(),
   needs_lighting: z.boolean().optional(),
   needs_audio: z.boolean().optional(),
   aerial: z.boolean().optional(),
@@ -91,13 +102,14 @@ export const orderDraftSchema = z.object({
   scriptwriting: z.boolean().optional(),
   rush: z.boolean().optional(),
 
-  style: z.string().max(80).nullable().optional(),
-  customer_notes: z.string().trim().max(2000).nullable().optional(),
-  expectations: z.string().trim().max(2000).nullable().optional(),
-  budget_note: z.string().trim().max(300).nullable().optional(),
-  preferred_contact: z.enum(["phone", "sms", "messenger", "email"]).nullable().optional(),
-  best_call_time: z.string().trim().max(120).nullable().optional(),
+  style: emptyToNull(z.string().max(80)).optional(),
+  customer_notes: emptyToNull(z.string().trim().max(2000)).optional(),
+  expectations: emptyToNull(z.string().trim().max(2000)).optional(),
+  budget_note: emptyToNull(z.string().trim().max(300)).optional(),
+  preferred_contact: emptyToNull(z.enum(["phone", "sms", "messenger", "email"])).optional(),
+  best_call_time: emptyToNull(z.string().trim().max(120)).optional(),
 });
+
 
 export const submitOrderSchema = z.object({
   order_id: z.string().uuid(),

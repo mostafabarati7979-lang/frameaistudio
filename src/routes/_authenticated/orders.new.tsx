@@ -33,7 +33,32 @@ type FormState = Partial<OrderDraftInput> & {
   consent_face_voice_simulation?: boolean;
 };
 
+const FIELD_LABELS: Record<string, string> = {
+  service_type: "نوع خدمت",
+  package_key: "پکیج",
+  project_title: "عنوان پروژه",
+  event_date: "تاریخ رویداد",
+  city: "شهر",
+  address: "آدرس",
+  team_hours: "ساعت حضور تیم",
+  shooting_days: "روزهای تصویربرداری",
+  description: "توضیحات",
+  cameras_count: "تعداد دوربین",
+  quality: "کیفیت",
+  orientation: "جهت تصویر",
+  duration_min: "مدت زمان",
+  clips_count: "تعداد کلیپ",
+  reels_count: "تعداد ریلز",
+  style: "سبک روایت",
+  customer_notes: "یادداشت‌های تکمیلی",
+  expectations: "انتظارات",
+  budget_note: "محدوده بودجه",
+  preferred_contact: "روش ارتباط ترجیحی",
+  best_call_time: "بهترین زمان تماس",
+};
+
 const STEPS = [
+
   "خدمت و پکیج",
   "اطلاعات پروژه",
   "جزئیات فنی",
@@ -124,8 +149,14 @@ function NewOrderPage() {
     const parsed = orderDraftSchema.safeParse(candidate);
     if (!parsed.success) {
       const first = parsed.error.issues[0];
-      return toast.error(first?.message ?? "اطلاعات وارد شده معتبر نیست.");
+      const field = first?.path?.[0] ? String(first.path[0]) : "";
+      const msg =
+        first?.message && first.message !== "Invalid"
+          ? first.message
+          : `مقدار وارد شده برای «${FIELD_LABELS[field] ?? field}» معتبر نیست.`;
+      return toast.error(msg);
     }
+
     if (draftId) {
       setStep(4);
       return;
