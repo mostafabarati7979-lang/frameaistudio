@@ -124,8 +124,14 @@ function NewOrderPage() {
     const parsed = orderDraftSchema.safeParse(candidate);
     if (!parsed.success) {
       const first = parsed.error.issues[0];
-      return toast.error(first?.message ?? "اطلاعات وارد شده معتبر نیست.");
+      const field = first?.path?.[0] ? String(first.path[0]) : "";
+      const msg =
+        first?.message && first.message !== "Invalid"
+          ? first.message
+          : `مقدار وارد شده برای «${FIELD_LABELS[field] ?? field}» معتبر نیست.`;
+      return toast.error(msg);
     }
+
     if (draftId) {
       setStep(4);
       return;
