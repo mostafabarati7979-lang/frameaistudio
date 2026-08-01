@@ -33,7 +33,32 @@ type FormState = Partial<OrderDraftInput> & {
   consent_face_voice_simulation?: boolean;
 };
 
+const FIELD_LABELS: Record<string, string> = {
+  service_type: "نوع خدمت",
+  package_key: "پکیج",
+  project_title: "عنوان پروژه",
+  event_date: "تاریخ رویداد",
+  city: "شهر",
+  address: "آدرس",
+  team_hours: "ساعت حضور تیم",
+  shooting_days: "روزهای تصویربرداری",
+  description: "توضیحات",
+  cameras_count: "تعداد دوربین",
+  quality: "کیفیت",
+  orientation: "جهت تصویر",
+  duration_min: "مدت زمان",
+  clips_count: "تعداد کلیپ",
+  reels_count: "تعداد ریلز",
+  style: "سبک روایت",
+  customer_notes: "یادداشت‌های تکمیلی",
+  expectations: "انتظارات",
+  budget_note: "محدوده بودجه",
+  preferred_contact: "روش ارتباط ترجیحی",
+  best_call_time: "بهترین زمان تماس",
+};
+
 const STEPS = [
+
   "خدمت و پکیج",
   "اطلاعات پروژه",
   "جزئیات فنی",
