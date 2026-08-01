@@ -58,6 +58,17 @@ const INTERNAL_TABLES = ["otp_codes", "rate_limits", "login_attempts"];
 
 const CRUD = ["SELECT", "INSERT", "UPDATE", "DELETE"];
 
+// In CI these suites must never pass vacuously: the workflow sets
+// CI_REQUIRE_DB=1 so a missing/broken DB connection fails the run.
+describe("database connectivity", () => {
+  it("has a database connection when CI requires one", () => {
+    if (process.env.CI_REQUIRE_DB === "1") {
+      expect(HAS_DB, "PGHOST is not set but CI_REQUIRE_DB=1").toBe(true);
+      expect(q("select 1")[0]).toBe("1");
+    }
+  });
+});
+
 describe.skipIf(!HAS_DB)("Data API grants preflight (listMyOrders path)", () => {
   it("grants full CRUD on app tables to authenticated", () => {
     const m = privMatrix(["authenticated"], CRUD_TABLES, CRUD);

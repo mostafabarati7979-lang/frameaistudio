@@ -1,0 +1,72 @@
+name: CI
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: Lint + unit tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+      - run: bun run lint
+      - name: Unit tests (no database)
+        run: bunx vitest run tests/mobile.test.ts tests/orders-schema.test.ts tests/quotes-math.test.ts
+
+  database-rules:
+    name: Grants + RLS regression
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: latest
+      - run: bun install --frozen-lockfile
+
+      - name: Install psql client
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y postgresql-client
+
+      - name: Verify database connection secret is configured
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then
+            echo "::error::Missing repository secret SUPABASE_DB_URL. Grants/RLS tests cannot run."
+            exit 1
+          fi
+
+      - name: Run Grants + RLS tests
+        env:
+          # psql reads the connection string from PGURI-style env; vitest only
+          # needs PGHOST to be present to enable the DB suites.
+          PGHOST: db
+          PGSERVICE: ""
+          PGPASSWORD: ""
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          # Expand the single connection string into the standard PG* vars the
+          # test helpers rely on (they call `psql` with no connection args).
+          eval "$(node -e '
+            const u = new URL(process.env.SUPABASE_DB_URL);
+            const q = (v) => "\x27" + String(v).replace(/\x27/g, "\x27\\\x27\x27") + "\x27";
+            console.log("export PGHOST=" + q(u.hostname));
+            console.log("export PGPORT=" + q(u.port || "5432"));
+            console.log("export PGUSER=" + q(decodeURIComponent(u.username)));
+            console.log("export PGPASSWORD=" + q(decodeURIComponent(u.password)));
+            console.log("export PGDATABASE=" + q(u.pathname.replace(/^\//, "") || "postgres"));
+            console.log("export PGSSLMODE=require");
+          ')"
+          psql -tAX -c "select 1" > /dev/null
+          CI_REQUIRE_DB=1 bunx vitest run tests/data-api-grants.test.ts tests/rls-has-role.test.ts
