@@ -1,9 +1,11 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { posts } from "../lib/site-data";
+import { postsQuery } from "../lib/content-queries";
+import { ContentErrorState, ContentNotFound } from "../components/site/ContentStates";
 
 export const Route = createFileRoute("/blog/$slug")({
-  loader: ({ params }) => {
-    const post = posts.find((p) => p.slug === params.slug);
+  loader: async ({ context, params }) => {
+    const rows = await context.queryClient.ensureQueryData(postsQuery());
+    const post = postsQuery().select(rows).find((p) => p.slug === params.slug);
     if (!post) throw notFound();
     return { post };
   },
@@ -50,6 +52,8 @@ export const Route = createFileRoute("/blog/$slug")({
       ],
     };
   },
+  errorComponent: ContentErrorState,
+  notFoundComponent: () => <ContentNotFound message="مقاله پیدا نشد" />,
   component: BlogPost,
 });
 

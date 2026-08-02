@@ -12,7 +12,8 @@ import {
   orderDraftSchema,
   type OrderDraftInput,
 } from "@/lib/orders-schema";
-import { packages } from "@/lib/site-data";
+import { useQuery } from "@tanstack/react-query";
+import { packagesQuery } from "@/lib/content-queries";
 import { OrderFileUploader } from "@/components/orders/OrderFileUploader";
 
 export const Route = createFileRoute("/_authenticated/orders/new")({
@@ -73,6 +74,7 @@ function NewOrderPage() {
   const finalize = useServerFn(submitOrder);
 
   const [step, setStep] = useState(0);
+  const { data: packages = [] } = useQuery(packagesQuery());
   const [form, setForm] = useState<FormState>({
     needs_lighting: false,
     needs_audio: false,

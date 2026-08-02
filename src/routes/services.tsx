@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { services } from "../lib/site-data";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { servicesQuery } from "../lib/content-queries";
+import { ContentErrorState, EmptyState } from "../components/site/ContentStates";
 
 export const Route = createFileRoute("/services")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(servicesQuery()),
   head: () => ({
     meta: [
       { title: "خدمات استودیو | فریم‌ای‌آی" },
@@ -10,11 +13,14 @@ export const Route = createFileRoute("/services")({
       { property: "og:description", content: "خدمات تخصصی روایت سینمایی رویدادها و برندها." },
     ],
   }),
+  errorComponent: ContentErrorState,
   component: ServicesPage,
 });
 
 function ServicesPage() {
+  const { data: services } = useSuspenseQuery(servicesQuery());
   const categories = Array.from(new Set(services.map((s) => s.category)));
+
   return (
     <div className="container-page py-16">
       <header className="max-w-2xl">
@@ -24,6 +30,12 @@ function ServicesPage() {
           هر پروژه ویژه است. قیمت‌ها پس از بررسی جزئیات پروژه در قالب پیش‌فاکتور اختصاصی ارسال می‌شوند.
         </p>
       </header>
+
+      {services.length === 0 && (
+        <div className="mt-12">
+          <EmptyState message="هنوز خدمتی منتشر نشده است." />
+        </div>
+      )}
 
       {categories.map((cat) => (
         <section key={cat} className="mt-14">
