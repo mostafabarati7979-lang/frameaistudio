@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { portfolio } from "../lib/site-data";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { portfolioQuery } from "../lib/content-queries";
+import { ContentErrorState, EmptyState } from "../components/site/ContentStates";
 
 export const Route = createFileRoute("/portfolio/")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(portfolioQuery()),
   head: () => ({
     meta: [
       { title: "نمونه‌کارها | استودیو فریم‌ای‌آی" },
@@ -10,11 +13,14 @@ export const Route = createFileRoute("/portfolio/")({
       { property: "og:description", content: "روایت‌های سینمایی ما را ببینید." },
     ],
   }),
+  errorComponent: ContentErrorState,
   component: PortfolioIndex,
 });
 
 function PortfolioIndex() {
+  const { data: portfolio } = useSuspenseQuery(portfolioQuery());
   const categories = ["همه", ...Array.from(new Set(portfolio.map((p) => p.category)))];
+
   return (
     <div className="container-page py-16">
       <header className="max-w-2xl">
@@ -25,35 +31,43 @@ function PortfolioIndex() {
         </p>
       </header>
 
-      <div className="mt-8 flex flex-wrap gap-2">
-        {categories.map((c) => (
-          <span key={c} className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
-            {c}
-          </span>
-        ))}
-      </div>
+      {portfolio.length === 0 ? (
+        <div className="mt-10">
+          <EmptyState message="هنوز نمونه‌کاری منتشر نشده است." />
+        </div>
+      ) : (
+        <>
+          <div className="mt-8 flex flex-wrap gap-2">
+            {categories.map((c) => (
+              <span key={c} className="rounded-full border border-border px-3 py-1 text-xs text-muted-foreground">
+                {c}
+              </span>
+            ))}
+          </div>
 
-      <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
-        {portfolio.map((item) => (
-          <Link
-            key={item.slug}
-            to="/portfolio/$slug"
-            params={{ slug: item.slug }}
-            className="group relative overflow-hidden rounded-xl aspect-[4/5]"
-          >
-            <img src={item.cover} alt={item.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition duration-700" />
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
-            {item.isDemo && (
-              <span className="absolute top-3 right-3 rounded-full bg-[color:var(--gold)] px-2.5 py-0.5 text-[10px] font-bold text-[color:var(--charcoal)]">Demo</span>
-            )}
-            <div className="absolute bottom-0 right-0 left-0 p-5">
-              <p className="text-xs text-[color:var(--gold-soft)]">{item.category}</p>
-              <h3 className="mt-1 text-lg font-semibold text-white">{item.title}</h3>
-              <p className="mt-1 text-xs text-white/70">{item.year}</p>
-            </div>
-          </Link>
-        ))}
-      </div>
+          <div className="mt-10 grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+            {portfolio.map((item) => (
+              <Link
+                key={item.slug}
+                to="/portfolio/$slug"
+                params={{ slug: item.slug }}
+                className="group relative overflow-hidden rounded-xl aspect-[4/5]"
+              >
+                <img src={item.cover} alt={item.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-110 transition duration-700" />
+                <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/30 to-transparent" />
+                {item.isDemo && (
+                  <span className="absolute top-3 right-3 rounded-full bg-[color:var(--gold)] px-2.5 py-0.5 text-[10px] font-bold text-[color:var(--charcoal)]">Demo</span>
+                )}
+                <div className="absolute bottom-0 right-0 left-0 p-5">
+                  <p className="text-xs text-[color:var(--gold-soft)]">{item.category}</p>
+                  <h3 className="mt-1 text-lg font-semibold text-white">{item.title}</h3>
+                  <p className="mt-1 text-xs text-white/70">{item.year}</p>
+                </div>
+              </Link>
+            ))}
+          </div>
+        </>
+      )}
     </div>
   );
 }

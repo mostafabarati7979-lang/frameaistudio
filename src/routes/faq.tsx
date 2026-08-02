@@ -1,36 +1,48 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { faqs } from "../lib/site-data";
-
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { faqsQuery } from "../lib/content-queries";
+import { toFaq } from "../lib/content-types";
+import { ContentErrorState, EmptyState } from "../components/site/ContentStates";
 
 export const Route = createFileRoute("/faq")({
-  head: () => ({
-    meta: [
-      { title: "سوالات متداول | استودیو فریم‌ای‌آی" },
-      { name: "description", content: "پاسخ به سوالات متداول درباره خدمات، فرآیند سفارش، تحویل و اصلاحات استودیو فریم‌ای‌آی." },
-      { property: "og:title", content: "سوالات متداول" },
-      { property: "og:description", content: "پاسخ سوال‌های پرتکرار شما." },
-      { property: "og:url", content: "https://frameaistudio.lovable.app/faq" },
-    ],
-    links: [{ rel: "canonical", href: "https://frameaistudio.lovable.app/faq" }],
-    scripts: [
-      {
-        type: "application/ld+json",
-        children: JSON.stringify({
-          "@context": "https://schema.org",
-          "@type": "FAQPage",
-          mainEntity: faqs.map((f) => ({
-            "@type": "Question",
-            name: f.q,
-            acceptedAnswer: { "@type": "Answer", text: f.a },
-          })),
-        }),
-      },
-    ],
-  }),
+  loader: ({ context }) => context.queryClient.ensureQueryData(faqsQuery()),
+  head: ({ loaderData }) => {
+    const faqs = (loaderData ?? []).filter((r) => r.kind === "faq").map(toFaq);
+    return {
+      meta: [
+        { title: "سوالات متداول | استودیو فریم‌ای‌آی" },
+        { name: "description", content: "پاسخ به سوالات متداول درباره خدمات، فرآیند سفارش، تحویل و اصلاحات استودیو فریم‌ای‌آی." },
+        { property: "og:title", content: "سوالات متداول" },
+        { property: "og:description", content: "پاسخ سوال‌های پرتکرار شما." },
+        { property: "og:url", content: "https://frameaistudio.lovable.app/faq" },
+      ],
+      links: [{ rel: "canonical", href: "https://frameaistudio.lovable.app/faq" }],
+      scripts:
+        faqs.length > 0
+          ? [
+              {
+                type: "application/ld+json",
+                children: JSON.stringify({
+                  "@context": "https://schema.org",
+                  "@type": "FAQPage",
+                  mainEntity: faqs.map((f) => ({
+                    "@type": "Question",
+                    name: f.q,
+                    acceptedAnswer: { "@type": "Answer", text: f.a },
+                  })),
+                }),
+              },
+            ]
+          : [],
+    };
+  },
+  errorComponent: ContentErrorState,
   component: FAQPage,
 });
 
 function FAQPage() {
+  const { data: faqs } = useSuspenseQuery(faqsQuery());
+
   return (
     <div className="container-page py-16 max-w-3xl">
       <header>
@@ -42,15 +54,19 @@ function FAQPage() {
       </header>
 
       <div className="mt-10 space-y-3">
-        {faqs.map((f, idx) => (
-          <details key={f.q} className="group rounded-xl border border-border bg-card p-5 open:border-[color:var(--gold)]/40" open={idx === 0}>
-            <summary className="cursor-pointer list-none flex items-center justify-between font-semibold">
-              <span>{f.q}</span>
-              <span className="text-[color:var(--gold)] group-open:rotate-45 transition text-xl leading-none">+</span>
-            </summary>
-            <p className="mt-3 text-sm text-muted-foreground leading-8">{f.a}</p>
-          </details>
-        ))}
+        {faqs.length === 0 ? (
+          <EmptyState message="هنوز سوالی منتشر نشده است." />
+        ) : (
+          faqs.map((f, idx) => (
+            <details key={f.q} className="group rounded-xl border border-border bg-card p-5 open:border-[color:var(--gold)]/40" open={idx === 0}>
+              <summary className="cursor-pointer list-none flex items-center justify-between font-semibold">
+                <span>{f.q}</span>
+                <span className="text-[color:var(--gold)] group-open:rotate-45 transition text-xl leading-none">+</span>
+              </summary>
+              <p className="mt-3 text-sm text-muted-foreground leading-8">{f.a}</p>
+            </details>
+          ))
+        )}
       </div>
 
       <div className="mt-12 text-center">

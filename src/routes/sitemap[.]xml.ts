@@ -1,6 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
 import type {} from "@tanstack/react-start";
-import { services, packages, portfolio, posts } from "@/lib/site-data";
 
 const BASE_URL = "https://frameaistudio.lovable.app";
 
@@ -14,6 +13,22 @@ export const Route = createFileRoute("/sitemap.xml")({
   server: {
     handlers: {
       GET: async () => {
+        const { fetchPublicContent } = await import("@/lib/public-content-fetch");
+
+        let dynamicEntries: SitemapEntry[] = [];
+        try {
+          const rows = await fetchPublicContent(["portfolio", "blog"]);
+          dynamicEntries = rows
+            .filter((r) => r.slug)
+            .map((r) =>
+              r.kind === "portfolio"
+                ? { path: `/portfolio/${r.slug}`, changefreq: "yearly" as const, priority: "0.6" }
+                : { path: `/blog/${r.slug}`, changefreq: "monthly" as const, priority: "0.6" },
+            );
+        } catch (error) {
+          console.error("[sitemap] failed to load dynamic entries", error);
+        }
+
         const entries: SitemapEntry[] = [
           { path: "/", changefreq: "weekly", priority: "1.0" },
           { path: "/services", changefreq: "monthly", priority: "0.9" },
@@ -23,11 +38,8 @@ export const Route = createFileRoute("/sitemap.xml")({
           { path: "/about", changefreq: "yearly", priority: "0.6" },
           { path: "/faq", changefreq: "monthly", priority: "0.6" },
           { path: "/contact", changefreq: "yearly", priority: "0.6" },
-          ...portfolio.map((p) => ({ path: `/portfolio/${p.slug}`, changefreq: "yearly" as const, priority: "0.6" })),
-          ...posts.map((p) => ({ path: `/blog/${p.slug}`, changefreq: "monthly" as const, priority: "0.6" })),
+          ...dynamicEntries,
         ];
-        // Reference services & packages arrays so unused-import lint stays quiet
-        void services; void packages;
 
         const urls = entries.map((e) =>
           [

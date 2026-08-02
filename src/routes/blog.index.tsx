@@ -1,7 +1,10 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { posts } from "../lib/site-data";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { postsQuery } from "../lib/content-queries";
+import { ContentErrorState, EmptyState } from "../components/site/ContentStates";
 
 export const Route = createFileRoute("/blog/")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(postsQuery()),
   head: () => ({
     meta: [
       { title: "وبلاگ | استودیو فریم‌ای‌آی" },
@@ -10,10 +13,13 @@ export const Route = createFileRoute("/blog/")({
       { property: "og:description", content: "دانش و نگاه سینمایی، در قالب مقاله." },
     ],
   }),
+  errorComponent: ContentErrorState,
   component: BlogPage,
 });
 
 function BlogPage() {
+  const { data: posts } = useSuspenseQuery(postsQuery());
+
   return (
     <div className="container-page py-16">
       <header className="max-w-2xl">
@@ -24,29 +30,35 @@ function BlogPage() {
         </p>
       </header>
 
-      <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
-        {posts.map((p) => (
-          <Link
-            key={p.slug}
-            to="/blog/$slug"
-            params={{ slug: p.slug }}
-            className="group rounded-xl overflow-hidden border border-border bg-card hover:border-[color:var(--gold)]/40 transition"
-          >
-            <div className="aspect-[16/10] overflow-hidden">
-              <img src={p.cover} alt={p.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
-            </div>
-            <div className="p-5">
-              <div className="flex items-center gap-2 text-xs text-muted-foreground">
-                <span>{p.date}</span>
-                <span>•</span>
-                <span>{p.readTime}</span>
+      {posts.length === 0 ? (
+        <div className="mt-12">
+          <EmptyState message="هنوز مقاله‌ای منتشر نشده است." />
+        </div>
+      ) : (
+        <div className="mt-12 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          {posts.map((p) => (
+            <Link
+              key={p.slug}
+              to="/blog/$slug"
+              params={{ slug: p.slug }}
+              className="group rounded-xl overflow-hidden border border-border bg-card hover:border-[color:var(--gold)]/40 transition"
+            >
+              <div className="aspect-[16/10] overflow-hidden">
+                <img src={p.cover} alt={p.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
               </div>
-              <h2 className="mt-2 text-lg font-semibold group-hover:text-[color:var(--gold)] transition">{p.title}</h2>
-              <p className="mt-2 text-sm text-muted-foreground leading-7 line-clamp-2">{p.excerpt}</p>
-            </div>
-          </Link>
-        ))}
-      </div>
+              <div className="p-5">
+                <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                  <span>{p.date}</span>
+                  <span>•</span>
+                  <span>{p.readTime}</span>
+                </div>
+                <h2 className="mt-2 text-lg font-semibold group-hover:text-[color:var(--gold)] transition">{p.title}</h2>
+                <p className="mt-2 text-sm text-muted-foreground leading-7 line-clamp-2">{p.excerpt}</p>
+              </div>
+            </Link>
+          ))}
+        </div>
+      )}
     </div>
   );
 }

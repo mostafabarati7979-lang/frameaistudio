@@ -1,11 +1,15 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
-import { portfolio } from "../lib/site-data";
+import { portfolioQuery } from "../lib/content-queries";
+import { ContentErrorState, ContentNotFound } from "../components/site/ContentStates";
 
 export const Route = createFileRoute("/portfolio/$slug")({
-  loader: ({ params }) => {
-    const item = portfolio.find((p) => p.slug === params.slug);
+  loader: async ({ context, params }) => {
+    const rows = await context.queryClient.ensureQueryData(portfolioQuery());
+    const all = portfolioQuery().select(rows);
+    const item = all.find((p) => p.slug === params.slug);
     if (!item) throw notFound();
-    return { item };
+    const related = all.filter((p) => p.slug !== item.slug && p.category === item.category).slice(0, 3);
+    return { item, related };
   },
   head: ({ loaderData }) => {
     if (!loaderData) {
@@ -23,12 +27,13 @@ export const Route = createFileRoute("/portfolio/$slug")({
       ],
     };
   },
+  errorComponent: ContentErrorState,
+  notFoundComponent: () => <ContentNotFound message="نمونه‌کار پیدا نشد" />,
   component: PortfolioDetail,
 });
 
 function PortfolioDetail() {
-  const { item } = Route.useLoaderData();
-  const related = portfolio.filter((p) => p.slug !== item.slug && p.category === item.category).slice(0, 3);
+  const { item, related } = Route.useLoaderData();
 
   return (
     <article className="pb-16">
