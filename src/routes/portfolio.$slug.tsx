@@ -1,6 +1,7 @@
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { portfolioQuery } from "../lib/content-queries";
 import { ContentErrorState, ContentNotFound } from "../components/site/ContentStates";
+import type { PortfolioItem } from "../lib/content-types";
 
 export const Route = createFileRoute("/portfolio/$slug")({
   loader: async ({ context, params }) => {
@@ -8,7 +9,7 @@ export const Route = createFileRoute("/portfolio/$slug")({
     const all = portfolioQuery().select(rows);
     const item = all.find((p) => p.slug === params.slug);
     if (!item) throw notFound();
-    const related = all.filter((p) => p.slug !== item.slug && p.category === item.category).slice(0, 3);
+    const related: PortfolioItem[] = all.filter((p) => p.slug !== item.slug && p.category === item.category).slice(0, 3);
     return { item, related };
   },
   head: ({ loaderData }) => {
@@ -69,7 +70,7 @@ function PortfolioDetail() {
           <section className="mt-20">
             <h2 className="text-2xl font-bold">نمونه‌های مشابه</h2>
             <div className="mt-6 grid gap-4 md:grid-cols-3">
-              {related.map((r) => (
+              {related.map((r: PortfolioItem) => (
                 <Link key={r.slug} to="/portfolio/$slug" params={{ slug: r.slug }} className="group block rounded-lg overflow-hidden aspect-[4/5] relative">
                   <img src={r.cover} alt={r.title} loading="lazy" className="w-full h-full object-cover group-hover:scale-105 transition duration-700" />
                   <div className="absolute inset-0 bg-gradient-to-t from-black/80 to-transparent" />
