@@ -1,8 +1,11 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { ArrowLeft, Film, Sparkles, Clapperboard, Palette, ShieldCheck } from "lucide-react";
-import { services, packages, portfolio, faqs } from "../lib/site-data";
+import { useSuspenseQuery } from "@tanstack/react-query";
+import { homeContentQuery } from "../lib/content-queries";
+import { ContentErrorState } from "../components/site/ContentStates";
 
 export const Route = createFileRoute("/")({
+  loader: ({ context }) => context.queryClient.ensureQueryData(homeContentQuery()),
   head: () => ({
     meta: [
       { title: "استودیو فریم‌ای‌آی | لحظه‌ی واقعی شما، با روایت سینمایی" },
@@ -21,10 +24,14 @@ export const Route = createFileRoute("/")({
       },
     ],
   }),
+  errorComponent: ContentErrorState,
   component: Home,
 });
 
 function Home() {
+  const { data } = useSuspenseQuery(homeContentQuery());
+  const { services, packages, portfolio, faqs } = data;
+
   return (
     <div>
       {/* HERO */}
