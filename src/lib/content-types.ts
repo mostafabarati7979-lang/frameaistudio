@@ -1,13 +1,15 @@
 // Shared, client-safe types + mappers for database-driven public site content.
 export type ContentKind = "service" | "package" | "portfolio" | "blog" | "faq" | "page";
 
+export type JsonValue = string | number | boolean | null | JsonValue[] | { [key: string]: JsonValue };
+
 export interface ContentRow {
   id: string;
   kind: ContentKind;
   slug: string | null;
   title: string;
   summary: string | null;
-  body: Record<string, unknown> | null;
+  body: Record<string, JsonValue> | null;
   cover_url: string | null;
   sort_order: number;
 }
