@@ -884,13 +884,6 @@ export type Database = {
         Returns: undefined
       }
       generate_order_code: { Args: never; Returns: string }
-      has_role: {
-        Args: {
-          _role: Database["public"]["Enums"]["app_role"]
-          _user_id: string
-        }
-        Returns: boolean
-      }
       next_contract_version: { Args: { _order_id: string }; Returns: number }
       next_quote_version: { Args: { _order_id: string }; Returns: number }
     }
