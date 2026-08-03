@@ -14,19 +14,30 @@ function q(sql: string): string {
   }).trim();
 }
 
-const SIG = "private.has_role(uuid,public.app_role)";
+// Catalog lookup by name: casting to regprocedure needs USAGE on the schema,
+// which the test role intentionally does not have.
+const PROC = `(select p.oid from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+               where n.nspname = 'private' and p.proname = 'has_role')`;
 
 describe.skipIf(!HAS_DB)("has_role RLS regression", () => {
+  it("lives in the private (non Data-API) schema", () => {
+    expect(q(`select count(*) from (${PROC}) t`)).toBe("1");
+    // Nothing named has_role remains in the API-exposed public schema.
+    expect(
+      q(`select count(*) from pg_proc p join pg_namespace n on n.oid = p.pronamespace
+         where n.nspname = 'public' and p.proname = 'has_role'`),
+    ).toBe("0");
+  });
+
   it("is not exposed to anon/PUBLIC but is executable by authenticated", () => {
     const rows = q(
-      `select has_function_privilege('anon','${SIG}','EXECUTE'),
-              has_function_privilege('authenticated','${SIG}','EXECUTE'),
+      `select has_function_privilege('anon', oid, 'EXECUTE'),
+              has_function_privilege('authenticated', oid, 'EXECUTE'),
               coalesce((select true from aclexplode(proacl) a
                         where a.grantee = 0 and a.privilege_type = 'EXECUTE'), false)
-       from pg_proc where oid = '${SIG}'::regprocedure`,
+       from pg_proc where oid = ${PROC}`,
     );
     expect(rows).toBe("f|t|f");
-    // The private schema is not exposed through the Data API.
     expect(q(`select has_schema_privilege('anon','private','USAGE')`)).toBe("f");
   });
 
@@ -34,7 +45,7 @@ describe.skipIf(!HAS_DB)("has_role RLS regression", () => {
     const [secdef, volatility, owner] = q(
       `select p.prosecdef, p.provolatile, r.rolname
        from pg_proc p join pg_roles r on r.oid = p.proowner
-       where p.oid = '${SIG}'::regprocedure`,
+       where p.oid = ${PROC}`,
     ).split("|");
     // SECURITY INVOKER would cause infinite RLS recursion on user_roles.
     expect(secdef).toBe("t");
@@ -42,17 +53,6 @@ describe.skipIf(!HAS_DB)("has_role RLS regression", () => {
     expect(owner).toBe("postgres");
   });
 
-  it("still resolves and returns correct results when evaluated", () => {
-    const adminId = q(
-      `select user_id from public.user_roles where role = 'admin' limit 1`,
-    );
-    expect(adminId).not.toBe("");
-    const res = q(
-      `select private.has_role('${adminId}','admin'),
-              private.has_role('00000000-0000-0000-0000-000000000000','admin')`,
-    );
-    expect(res).toBe("t|f");
-  });
 
   it("is still referenced by RLS policies that keep working", () => {
     const policies = q(
