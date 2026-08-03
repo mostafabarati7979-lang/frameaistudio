@@ -1,9 +1,9 @@
 import { execFileSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 
-// Regression suite for the migration that revoked direct EXECUTE on
-// public.has_role(uuid, app_role). The function must stay unusable through the
-// REST API (rpc) while still working inside RLS policy expressions.
+// Regression suite for the migration that moved has_role into the private
+// schema. It must stay unreachable through the REST API (private schema is not
+// exposed / anon has no rights) while still working inside RLS policies.
 
 const HAS_DB = !!process.env.PGHOST;
 
@@ -14,10 +14,10 @@ function q(sql: string): string {
   }).trim();
 }
 
-const SIG = "public.has_role(uuid,public.app_role)";
+const SIG = "private.has_role(uuid,public.app_role)";
 
 describe.skipIf(!HAS_DB)("has_role RLS regression", () => {
-  it("is not directly executable by PUBLIC, anon or authenticated", () => {
+  it("is not exposed to anon/PUBLIC but is executable by authenticated", () => {
     const rows = q(
       `select has_function_privilege('anon','${SIG}','EXECUTE'),
               has_function_privilege('authenticated','${SIG}','EXECUTE'),
@@ -25,7 +25,9 @@ describe.skipIf(!HAS_DB)("has_role RLS regression", () => {
                         where a.grantee = 0 and a.privilege_type = 'EXECUTE'), false)
        from pg_proc where oid = '${SIG}'::regprocedure`,
     );
-    expect(rows).toBe("f|f|f");
+    expect(rows).toBe("f|t|f");
+    // The private schema is not exposed through the Data API.
+    expect(q(`select has_schema_privilege('anon','private','USAGE')`)).toBe("f");
   });
 
   it("stays SECURITY DEFINER, stable and owned by a superuser role", () => {
@@ -46,8 +48,8 @@ describe.skipIf(!HAS_DB)("has_role RLS regression", () => {
     );
     expect(adminId).not.toBe("");
     const res = q(
-      `select public.has_role('${adminId}','admin'),
-              public.has_role('00000000-0000-0000-0000-000000000000','admin')`,
+      `select private.has_role('${adminId}','admin'),
+              private.has_role('00000000-0000-0000-0000-000000000000','admin')`,
     );
     expect(res).toBe("t|f");
   });
