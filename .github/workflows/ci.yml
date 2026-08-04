@@ -72,5 +72,5 @@ jobs:
             console.log("export PGSSLMODE=require");
           ')"
           psql -tAX -c "select 1" > /dev/null
-          CI_REQUIRE_DB=1 bunx vitest run tests/data-api-grants.test.ts tests/rls-has-role.test.ts tests/orders-insert.integration.test.ts
+          CI_REQUIRE_DB=1 bunx vitest run tests/data-api-grants.test.ts tests/rls-has-role.test.ts tests/orders-insert.integration.test.ts tests/orders-owner-read.integration.test.ts
 
