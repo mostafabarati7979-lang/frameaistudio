@@ -110,25 +110,30 @@ describe.skipIf(!HAS_ENV)("order intake: request → insert as authenticated", (
     expect(parsed.style).toBeNull();
   });
 
-  it("generates an order code as authenticated (RPC grant present)", async () => {
+  it("keeps generate_order_code off-limits to the authenticated role", async () => {
+    // The server function mints the code with the service role; direct API
+    // access from a customer session must stay denied.
     const res = await api("/rest/v1/rpc/generate_order_code", {
       method: "POST",
       token,
       body: JSON.stringify({}),
     });
-    expect(res.status, JSON.stringify(res.body)).toBe(200);
-    expect(String(res.body)).toMatch(/^FA-[A-Z0-9]{6}$/);
+    expect(res.status).toBe(403);
   });
 
   it("inserts the order into public.orders and returns the row", async () => {
     const draft = orderDraftSchema.parse(rawUserRequest);
 
+    // Mirrors createOrderDraft: code minted server-side, row inserted with the
+    // customer's own session so RLS is the thing being exercised.
     const code = await api("/rest/v1/rpc/generate_order_code", {
       method: "POST",
-      token,
+      serviceRole: true,
       body: JSON.stringify({}),
     });
-    expect(code.status).toBe(200);
+    expect(code.status, JSON.stringify(code.body)).toBe(200);
+    expect(String(code.body)).toMatch(/^FA-[A-Z0-9]{6}$/);
+
 
     // .select() on insert forces SELECT policies (incl. the admin policy that
     // calls has_role) to be evaluated for the authenticated role.
